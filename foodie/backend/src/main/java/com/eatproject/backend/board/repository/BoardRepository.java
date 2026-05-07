@@ -1,6 +1,7 @@
 package com.eatproject.backend.board.repository;
 
-import com.foodie.domain.board.entity.Board;
+
+import com.eatproject.backend.board.entity.Board;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;

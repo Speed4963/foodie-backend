@@ -1,4 +1,4 @@
-package com.eatproject.frontend.config;
+package com.eatproject.backend.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

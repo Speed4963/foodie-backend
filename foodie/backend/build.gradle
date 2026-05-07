@@ -22,12 +22,12 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'   // jpa 플러그인
 //	TODO: 여기, 로그인 인증 플러그인(라이브러리)
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
-//	implementation 'org.springframework.boot:spring-boot-starter-web'        // 웹프로그램을 위한 플러그인
-//	compileOnly 'org.projectlombok:lombok'                                   // 롬북 플러그인 1
-//	developmentOnly 'org.springframework.boot:spring-boot-devtools'          // 자동 재시작 플러그인
-//	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'                           // 오라클 플러그인
-//	annotationProcessor 'org.projectlombok:lombok'                           // 룸북 플러그인 2
-//	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'    // was 플러그인
+	implementation 'org.springframework.boot:spring-boot-starter-web'        // 웹프로그램을 위한 플러그인
+	compileOnly 'org.projectlombok:lombok'                                   // 롬북 플러그인 1
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'          // 자동 재시작 플러그인
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc11'                           // 오라클 플러그인
+	annotationProcessor 'org.projectlombok:lombok'                           // 룸북 플러그인 2
+	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'    // was 플러그인
 //	testImplementation 'org.springframework.boot:spring-boot-starter-test'   // junit(단위테스트) 플러그인1
 //	TODO: 여기, 단위테스트용, 로그인 인증 플러그인
 //	testImplementation 'org.springframework.security:spring-security-test'

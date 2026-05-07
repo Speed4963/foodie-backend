@@ -1,4 +1,4 @@
-package com.eatproject.frontend;
+package com.eatproject.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

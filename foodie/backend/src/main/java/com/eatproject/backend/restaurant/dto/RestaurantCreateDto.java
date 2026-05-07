@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantCreateDto {
     private String name;
+    private String address; // 추가: ERD의 ADDRESS 컬럼과 매핑
     private BigDecimal lat;
     private BigDecimal lng;
     private String geohash;
@@ -21,7 +22,6 @@ public class RestaurantCreateDto {
     private List<ImageCreateDto> images;
     private List<TagCreateDto> tags;
     private List<TagCreateDto> customTags;
-
 
     @Getter @Setter
     public static class MenuCreateDto {

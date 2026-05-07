@@ -2,20 +2,15 @@ package com.eatproject.backend.restaurant.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "RESTAURANTS")
 @Getter
-@Setter // 요청하신 Setter 추가!
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-// 🚨 무한 루프 방지: 출력이나 비교를 할 때 밑에 달린 1:N 리스트들은 무시하도록 설정
-@ToString(exclude = {"menus", "images", "tags"})
+@Builder
 public class Restaurant {
 
     @Id
@@ -23,59 +18,33 @@ public class Restaurant {
     @Column(name = "REST_ID")
     private Integer restId;
 
-    @Column(name = "NAME", nullable = false, length = 200)
+    @Column(name = "NAME", length = 200, nullable = false)
     private String name;
 
-    @Column(name = "LAT", nullable = false, precision = 10, scale = 8)
+    @Column(name = "LAT", precision = 10, scale = 8, nullable = false)
     private BigDecimal lat;
 
-    @Column(name = "LNG", nullable = false, precision = 11, scale = 8)
+    @Column(name = "LNG", precision = 11, scale = 8, nullable = false)
     private BigDecimal lng;
 
-    @Column(name = "GEOHASH", nullable = false, length = 20)
+    @Column(name = "GEOHASH", length = 20, nullable = false)
     private String geohash;
 
+    @Column(name = "ADDRESS", length = 255, nullable = false)
+    private String address;
+
     @Column(name = "AVG_PRICE", nullable = false)
-    private Integer avgPrice;
-
-    @Column(name = "MIN_PRICE")
-    private Integer minPrice;
-
-    @Column(name = "MAX_PRICE")
-    private Integer maxPrice;
+    @Builder.Default
+    private Integer avgPrice = 0;
 
     @Column(name = "LAST_SYNC_AT", nullable = false)
-    private LocalDateTime lastSyncAt;
+    @Builder.Default
+    private LocalDateTime lastSyncAt = LocalDateTime.now();
 
-    @Column(name = "CREATED_AT", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "CREATED_AT", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
-
-    // --- 연관관계 매핑 (Cascade 적용) ---
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Menu> menus = new ArrayList<>();
-
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RestaurantImage> images = new ArrayList<>();
-
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RestaurantTag> tags = new ArrayList<>();
-
-    // --- 연관관계 편의 메서드 (이건 Setter가 있어도 양방향을 위해 남겨두는 것이 좋습니다) ---
-    public void addMenu(Menu menu) {
-        this.menus.add(menu);
-        menu.setRestaurant(this); // 자식 엔티티의 Setter 활용
-    }
-
-    public void addImage(RestaurantImage image) {
-        this.images.add(image);
-        image.setRestaurant(this); // 자식 엔티티의 Setter 활용
-    }
-
-    public void addRestaurantTag(RestaurantTag tag) {
-        this.tags.add(tag);
-        tag.setRestaurant(this); // 자식 엔티티의 Setter 활용
-    }
 }

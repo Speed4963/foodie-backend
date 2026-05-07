@@ -12,6 +12,7 @@ import java.util.List;
 public class RestaurantDto {
     private Integer restId;
     private String name;
+    private String address; // 추가: 사용자에게 보여줄 주소 정보
     private BigDecimal lat;
     private BigDecimal lng;
     private String geohash;

@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantCreateDto {
     private String name;
+    private String address;
     private BigDecimal lat;
     private BigDecimal lng;
     private String geohash;

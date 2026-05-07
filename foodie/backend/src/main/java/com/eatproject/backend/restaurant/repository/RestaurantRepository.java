@@ -19,7 +19,7 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     // 1. 키워드 검색 + 페이징 (직접 쿼리 작성 방식)
     // @Param("searchKeyword")를 쓰면 쿼리문의 :searchKeyword와 연결됩니다.
     @Query("SELECT r FROM Restaurant r " +
-            "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword%) " +
+            "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) " +
             "AND r.deletedAt IS NULL")
     Page<Restaurant> selectRestaurantList(@Param("searchKeyword") String searchKeyword, Pageable pageable);
 
@@ -36,8 +36,10 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
 
     // 4. 카테고리별 조회
-    @Query("SELECT r FROM Restaurant r " +
-            "WHERE r.category = :category AND r.deletedAt IS NULL")
+    @Query("SELECT DISTINCT r FROM Restaurant r " +
+            "JOIN r.tags t " +
+            "WHERE t.category = :category " +
+            "AND r.deletedAt IS NULL")
     Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);
 
     List<Restaurant> findAllByGeohashInAndDeletedAtIsNull(List<String> geohashes);

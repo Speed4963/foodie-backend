@@ -11,6 +11,7 @@ import java.util.List;
 public class RestaurantUpdateDto {
     // 식당 본체 정보 수정
     private String name;
+    private String address;
     private BigDecimal lat;
     private BigDecimal lng;
     private Integer avgPrice;

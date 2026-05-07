@@ -22,10 +22,9 @@ public class RestaurantUpdateDto {
     private List<ImageUpdateDto> images;
     private List<TagUpdateDto> customTags;
 
-
     @Getter @Setter
     public static class MenuUpdateDto {
-        private Integer menuId; // ID가 있으면 수정, 없으면 신규 추가
+        private Integer menuId;
         private String pName;
         private Integer price;
         private Boolean isRepresentative;
@@ -33,7 +32,7 @@ public class RestaurantUpdateDto {
 
     @Getter @Setter
     public static class ImageUpdateDto {
-        private Long imgId;     // ID가 있으면 수정, 없으면 신규 추가
+        private Long imgId;
         private String imgUrl;
         private String thumbUrl;
         private String category;
@@ -43,7 +42,7 @@ public class RestaurantUpdateDto {
 
     @Getter @Setter
     public static class TagUpdateDto {
-        private Integer tagId;  // ID가 있으면 수정, 없으면 신규 추가
+        private Integer tagId;
         private String category;
         private String customTag;
     }

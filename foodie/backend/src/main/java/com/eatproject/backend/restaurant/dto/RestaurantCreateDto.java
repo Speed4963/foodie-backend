@@ -10,6 +10,7 @@ import java.util.List;
 @AllArgsConstructor
 public class RestaurantCreateDto {
     private String name;
+
     private String address;
     private BigDecimal lat;
     private BigDecimal lng;
@@ -21,7 +22,6 @@ public class RestaurantCreateDto {
     private List<MenuCreateDto> menus;
     private List<ImageCreateDto> images;
     private List<TagCreateDto> customTags;
-
 
     @Getter @Setter
     public static class MenuCreateDto {

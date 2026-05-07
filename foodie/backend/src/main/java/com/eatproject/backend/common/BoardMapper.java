@@ -2,7 +2,8 @@ package com.eatproject.backend.common;
 
 import com.eatproject.backend.board.dto.BoardResponseDto;
 // Board 엔티티의 정확한 패키지 경로를 확인해서 import 하세요
-import com.foodie.domain.board.entity.Board;
+
+import com.eatproject.backend.board.entity.Board;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",

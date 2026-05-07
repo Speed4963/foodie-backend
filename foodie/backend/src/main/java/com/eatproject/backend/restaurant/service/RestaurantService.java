@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
+
+    private final NaverMapService naverMapService;
 
     // --- [조회 기능] ---
 
@@ -83,9 +86,25 @@ public class RestaurantService {
     public Integer saveRestaurant(RestaurantCreateDto dto) {
         Restaurant restaurant = new Restaurant();
         restaurant.setName(dto.getName());
-        restaurant.setLat(dto.getLat());
-        restaurant.setLng(dto.getLng());
-        restaurant.setGeohash(dto.getGeohash());
+        restaurant.setAddress(dto.getAddress());
+        if (dto.getAddress() != null && !dto.getAddress().isBlank()) {
+            NaverMapService.Coordinate coord = naverMapService.getCoordinate(dto.getAddress());
+            if (coord != null) {
+                restaurant.setLat(BigDecimal.valueOf(coord.lat()));
+                restaurant.setLng(BigDecimal.valueOf(coord.lng()));
+                log.info("주소 변환 성공: {} -> {}, {}", dto.getAddress(), coord.lat(), coord.lng());
+
+                // 필요 시 Geohash 계산 로직 추가 가능
+                // restaurant.setGeohash(calculateGeohash(coord.lat(), coord.lng()));
+            } else {
+                log.warn("주소 변환 실패: {}", dto.getAddress());
+            }
+        } else {
+            // 주소가 없을 경우 DTO의 좌표를 우선 사용
+            restaurant.setLat(dto.getLat());
+            restaurant.setLng(dto.getLng());
+            restaurant.setGeohash(dto.getGeohash());
+        }
         restaurant.setAvgPrice(dto.getAvgPrice());
         restaurant.setMinPrice(dto.getMinPrice());
         restaurant.setMaxPrice(dto.getMaxPrice());
@@ -156,6 +175,15 @@ public class RestaurantService {
     public void updateRestaurant(Integer id, RestaurantUpdateDto dto) {
         Restaurant restaurant = restaurantRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("수정할 식당 정보가 없습니다."));
+        // 4. 주소가 변경되었다면 좌표도 갱신
+        if (dto.getAddress() != null && !dto.getAddress().equals(restaurant.getAddress())) {
+            NaverMapService.Coordinate coord = naverMapService.getCoordinate(dto.getAddress());
+            if (coord != null) {
+                restaurant.setLat(BigDecimal.valueOf(coord.lat()));
+                restaurant.setLng(BigDecimal.valueOf(coord.lng()));
+            }
+            restaurant.setAddress(dto.getAddress());
+        }
 
         restaurant.setName(dto.getName());
         restaurant.setLat(dto.getLat());
@@ -255,12 +283,14 @@ public class RestaurantService {
         RestaurantDto dto = new RestaurantDto();
         dto.setRestId(entity.getRestId());
         dto.setName(entity.getName());
+        dto.setAddress(entity.getAddress());
         dto.setAvgPrice(entity.getAvgPrice());
         return dto;
     }
 
     private RestaurantDto toFullDto(Restaurant entity) {
         RestaurantDto dto = toDto(entity);
+        dto.setAddress(entity.getAddress());
         dto.setLat(entity.getLat());
         dto.setLng(entity.getLng());
         dto.setGeohash(entity.getGeohash());

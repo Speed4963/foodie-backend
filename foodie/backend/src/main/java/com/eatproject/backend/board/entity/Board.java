@@ -1,22 +1,19 @@
 package com.eatproject.backend.board.entity;
 
-
 import com.eatproject.backend.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Where;
-
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "BOARDS")
 @Getter
-@Setter // 값 변경(status 등)을 위해 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Where(clause = "DELETED_AT IS NULL")
-public class Board extends BaseTimeEntity { // 1. BaseTimeEntity 상속
+public class Board extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,12 +26,11 @@ public class Board extends BaseTimeEntity { // 1. BaseTimeEntity 상속
     @Column(name = "NAME", length = 100, nullable = false)
     private String name;
 
-    // 2. @Builder.Default를 사용하여 초기값 설정 (Lombok 어노테이션 사용)
     @Builder.Default
     @Column(name = "GENERATION", nullable = false)
-    private Integer generation = 1;
+    private Short generation = 1; // SQL SMALLINT 대응
 
-    @Column(name = "SLUG", length = 50, nullable = false)
+    @Column(name = "SLUG", length = 50, nullable = false, unique = true)
     private String slug;
 
     @Builder.Default
@@ -53,4 +49,15 @@ public class Board extends BaseTimeEntity { // 1. BaseTimeEntity 상속
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
+
+    // 비즈니스 로직: 상태 변경 시 시간 기록 자동화
+    public void updateStatus(String newStatus) {
+        this.status = newStatus;
+        this.statusChangedAt = LocalDateTime.now();
+    }
+
+    // 게시글 수 증가 (세대 분기 트리거용)
+    public void incrementPostCount() {
+        this.postCount++;
+    }
 }

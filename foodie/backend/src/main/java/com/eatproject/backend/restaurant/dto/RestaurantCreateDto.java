@@ -19,7 +19,6 @@ public class RestaurantCreateDto {
 
     private List<MenuCreateDto> menus;
     private List<ImageCreateDto> images;
-    private List<TagCreateDto> tags;
     private List<TagCreateDto> customTags;
 
 

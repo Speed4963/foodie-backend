@@ -11,11 +11,15 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SequenceGenerator(
+        name = "image_seq",
+        sequenceName = "RESTAURANT_IMAGE_SEQ",
+        allocationSize = 50 // 이미지 역시 한 번에 여러 장 올라오므로 효율적입니다.
+)
 @ToString(exclude = {"restaurant", "menu"}) // 무한 루프 방지
 public class RestaurantImage {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_seq")
     @Column(name = "IMG_ID")
     private Long imgId;
 

@@ -1,6 +1,7 @@
 package com.eatproject.backend.restaurant.repository;
 
 
+import com.eatproject.backend.common.CategoryType;
 import com.eatproject.backend.restaurant.entity.Restaurant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,7 +36,9 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
 
     // 4. 카테고리별 조회
-    @Query("SELECT DISTINCT r FROM Restaurant r JOIN r.tags t " +
-            "WHERE t.category = :category AND r.deletedAt IS NULL")
-    Page<Restaurant> findAllByCategory(@Param("category") String category, Pageable pageable);
+    @Query("SELECT r FROM Restaurant r " +
+            "WHERE r.category = :category AND r.deletedAt IS NULL")
+    Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);
+
+    List<Restaurant> findAllByGeohashInAndDeletedAtIsNull(List<String> geohashes);
 }

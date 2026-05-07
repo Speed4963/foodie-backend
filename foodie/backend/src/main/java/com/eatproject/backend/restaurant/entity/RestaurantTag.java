@@ -9,11 +9,16 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SequenceGenerator(
+        name = "tag_seq",
+        sequenceName = "RESTAURANT_TAG_SEQ",
+        allocationSize = 50
+)
 @ToString(exclude = "restaurant") // 무한 루프 방지
 public class RestaurantTag {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tag_seq")
     @Column(name = "TAG_ID")
     private Integer tagId;
 

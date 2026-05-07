@@ -8,7 +8,7 @@ public class BoardResponseDto {
     private final Integer boardId;
     private final String name;
     private final String slug;
-    private final Integer generation;
+    private final Short generation;
     private final String status;
     private final Integer postCount;
 

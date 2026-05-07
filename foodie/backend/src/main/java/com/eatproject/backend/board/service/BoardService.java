@@ -1,6 +1,7 @@
 package com.eatproject.backend.board.service;
 
 import com.eatproject.backend.board.dto.BoardResponseDto;
+import com.eatproject.backend.board.entity.Board;
 import com.eatproject.backend.board.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,17 +17,17 @@ public class BoardService {
 
     private final BoardRepository boardRepository;
 
-    // 활성화된 모든 게시판 목록 조회
+    // 활성화된 게시판 목록만 조회
     public List<BoardResponseDto> getActiveBoards() {
         return boardRepository.findAllByStatus("ACTIVE").stream()
                 .map(BoardResponseDto::new)
                 .collect(Collectors.toList());
     }
 
-    // 슬러그(예: gangnam-food)로 특정 게시판 조회
+    // 슬러그 기준 상세 조회
     public BoardResponseDto getBoardBySlug(String slug) {
-        return boardRepository.findBySlug(slug)
-                .map(BoardResponseDto::new)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시판을 찾을 수 없습니다: " + slug));
+        Board board = boardRepository.findBySlug(slug)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시판입니다: " + slug));
+        return new BoardResponseDto(board);
     }
 }

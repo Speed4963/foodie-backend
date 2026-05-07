@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -37,4 +38,8 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     @Query("SELECT DISTINCT r FROM Restaurant r JOIN r.tags t " +
             "WHERE t.category = :category AND r.deletedAt IS NULL")
     Page<Restaurant> findAllByCategory(@Param("category") String category, Pageable pageable);
+
+    // RestaurantRepository.java에 추가
+    // 주변 9개 격자의 Geohash 리스트를 받아 식당 목록을 반환
+    List<Restaurant> findAllByGeohashInAndDeletedAtIsNull(List<String> geohashes);
 }

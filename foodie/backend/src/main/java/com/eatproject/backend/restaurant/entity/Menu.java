@@ -11,11 +11,16 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SequenceGenerator(
+        name = "menu_seq",
+        sequenceName = "MENU_SEQ",
+        allocationSize = 50 // 메뉴도 여러 개씩 저장되므로 50 정도가 적당합니다.
+)
 @ToString(exclude = "restaurant") // 무한 루프 방지
 public class Menu {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "menu_seq")
     @Column(name = "MENU_ID")
     private Integer menuId;
 

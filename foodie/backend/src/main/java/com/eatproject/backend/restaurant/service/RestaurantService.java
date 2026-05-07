@@ -1,5 +1,6 @@
 package com.eatproject.backend.restaurant.service;
 
+import com.eatproject.backend.common.CategoryType;
 import com.eatproject.backend.restaurant.dto.RestaurantCreateDto;
 import com.eatproject.backend.restaurant.dto.RestaurantDto;
 import com.eatproject.backend.restaurant.dto.RestaurantUpdateDto;
@@ -40,9 +41,27 @@ public class RestaurantService {
     /**
      * 2. 카테고리별 목록 조회 (페이징)
      */
+    /**
+     * 2. 카테고리별 목록 조회 (전체 보기 지원)
+     */
     public Page<RestaurantDto> selectRestaurantListByCategory(String category, Pageable pageable) {
-        Page<Restaurant> restaurants = restaurantRepository.findAllByCategory(category, pageable);
-        return restaurants.map(this::toDto);
+        // 1. 카테고리 값이 없거나 "ALL"인 경우 -> 전체 목록 조회로 토스!
+        if (category == null || category.isBlank() || category.equalsIgnoreCase("ALL")) {
+            log.info("카테고리 미지정 또는 ALL 요청: 전체 목록을 조회합니다.");
+            return selectRestaurantList(null, pageable); // 기존 전체 조회 메서드 활용
+        }
+
+        // 2. 특정 카테고리가 지정된 경우 -> ENUM 변환 후 필터링
+        try {
+            CategoryType categoryEnum = CategoryType.valueOf(category.toUpperCase());
+            Page<Restaurant> restaurants = restaurantRepository.findAllByCategory(categoryEnum, pageable);
+
+            return restaurants.map(this::toDto);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 카테고리 값이 들어온 경우 에러 로그를 남기고 빈 페이지 반환
+            log.error("잘못된 카테고리 요청입니다: {}", category);
+            return Page.empty(pageable);
+        }
     }
 
     /**
@@ -121,7 +140,6 @@ public class RestaurantService {
         if (dto.getCustomTags() != null) {
             dto.getCustomTags().forEach(tagDto -> {
                 RestaurantTag tag = new RestaurantTag();
-                tag.setCategory(tagDto.getCategory());
                 tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
                 restaurant.addRestaurantTag(tag);
             });
@@ -199,7 +217,6 @@ public class RestaurantService {
             restaurant.getTags().clear();
             dto.getCustomTags().forEach(tagDto -> {
                 RestaurantTag tag = new RestaurantTag();
-                tag.setCategory(tagDto.getCategory());
                 tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
                 restaurant.addRestaurantTag(tag);
             });

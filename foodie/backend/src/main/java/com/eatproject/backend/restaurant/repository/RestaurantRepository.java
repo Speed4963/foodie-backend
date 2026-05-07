@@ -1,6 +1,7 @@
 package com.eatproject.backend.restaurant.repository;
 
 
+import com.eatproject.backend.common.CategoryType;
 import com.eatproject.backend.restaurant.entity.Restaurant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,11 +36,9 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
 
     // 4. 카테고리별 조회
-    @Query("SELECT DISTINCT r FROM Restaurant r JOIN r.tags t " +
-            "WHERE t.category = :category AND r.deletedAt IS NULL")
-    Page<Restaurant> findAllByCategory(@Param("category") String category, Pageable pageable);
+    @Query("SELECT r FROM Restaurant r " +
+            "WHERE r.category = :category AND r.deletedAt IS NULL")
+    Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);
 
-    // RestaurantRepository.java에 추가
-    // 주변 9개 격자의 Geohash 리스트를 받아 식당 목록을 반환
     List<Restaurant> findAllByGeohashInAndDeletedAtIsNull(List<String> geohashes);
 }

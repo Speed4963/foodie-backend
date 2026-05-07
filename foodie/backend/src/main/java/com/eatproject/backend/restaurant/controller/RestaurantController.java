@@ -1,10 +1,10 @@
 package com.eatproject.backend.restaurant.controller;
 
-
 import com.eatproject.backend.restaurant.dto.RestaurantCreateDto;
 import com.eatproject.backend.restaurant.dto.RestaurantDto;
 import com.eatproject.backend.restaurant.dto.RestaurantUpdateDto;
 import com.eatproject.backend.restaurant.service.RestaurantService;
+import jakarta.validation.Valid; // 추가
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +20,7 @@ public class RestaurantController {
     private final RestaurantService restaurantService;
 
     // --- [유저/공통 기능] ---
-
-    /**
-     * 1. 식당 전체 목록 조회 (검색어 포함, 페이징)
-     * 예시: GET /api/restaurants?searchKeyword=치킨&page=0&size=10
-     */
+//식당 전체조회
     @GetMapping
     public ResponseEntity<Page<RestaurantDto>> getRestaurantList(
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -35,8 +31,8 @@ public class RestaurantController {
     }
 
     /**
-     * 2. 카테고리별 식당 목록 조회 (페이징)
-     * 예시: GET /api/restaurants/category/KOREAN?page=0&size=10
+     * 2. 카테고리별 식당 목록 조회
+     * 서비스에서 "ALL"이나 잘못된 값 처리를 다 해주므로 String으로 받는 것이 가장 유연합니다.
      */
     @GetMapping("/category/{category}")
     public ResponseEntity<Page<RestaurantDto>> getRestaurantListByCategory(
@@ -46,11 +42,7 @@ public class RestaurantController {
         Page<RestaurantDto> list = restaurantService.selectRestaurantListByCategory(category, pageable);
         return ResponseEntity.ok(list);
     }
-
-    /**
-     * 3. 식당 상세 정보 조회 (메뉴, 이미지 포함)
-     * 예시: GET /api/restaurants/5
-     */
+//식당단건조회
     @GetMapping("/{id}")
     public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("id") Integer id) {
         RestaurantDto restaurant = restaurantService.findById(id);
@@ -62,34 +54,29 @@ public class RestaurantController {
 
     /**
      * 4. 식당 신규 등록
-     * 예시: POST /api/restaurants (JSON 데이터 전달)
+     * @Valid를 추가하여 DTO에 설정한 제약 조건(@NotBlank 등)을 체크합니다.
      */
     @PostMapping
-    public ResponseEntity<Integer> createRestaurant(@RequestBody RestaurantCreateDto createDto) {
+    public ResponseEntity<Integer> createRestaurant(@Valid @RequestBody RestaurantCreateDto createDto) {
         Integer restId = restaurantService.saveRestaurant(createDto);
-        return ResponseEntity.status(201).body(restId); // 201 Created 응답
+        return ResponseEntity.status(201).body(restId);
     }
 
     /**
-     * 5. 식당 정보 수정 (메뉴/이미지 포함)
-     * 예시: PUT /api/restaurants/5
+     * 5. 식당 정보 수정
      */
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateRestaurant(
             @PathVariable("id") Integer id,
-            @RequestBody RestaurantUpdateDto updateDto) {
+            @Valid @RequestBody RestaurantUpdateDto updateDto) {
 
         restaurantService.updateRestaurant(id, updateDto);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 6. 식당 정보 삭제 (Soft Delete)
-     * 예시: DELETE /api/restaurants/5
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable("id") Integer id) {
         restaurantService.deleteRestaurant(id);
-        return ResponseEntity.noContent().build(); // 204 No Content 응답
+        return ResponseEntity.noContent().build();
     }
 }

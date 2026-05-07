@@ -1,5 +1,6 @@
 package com.eatproject.backend.restaurant.entity;
 
+import com.eatproject.backend.common.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,12 +15,20 @@ import java.util.List;
 @Setter // 요청하신 Setter 추가!
 @NoArgsConstructor
 @AllArgsConstructor
+@SequenceGenerator(
+        name = "rest_seq",
+        sequenceName = "RESTAURANT_SEQ", // DB에 생성될 시퀀스 이름
+        allocationSize = 50 // 메모리에 미리 할당할 ID 개수 (성능 핵심)
+)
 // 🚨 무한 루프 방지: 출력이나 비교를 할 때 밑에 달린 1:N 리스트들은 무시하도록 설정
 @ToString(exclude = {"menus", "images", "tags"})
 public class Restaurant {
 
+    @Enumerated(EnumType.STRING)
+    private CategoryType category;
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rest_seq")
     @Column(name = "REST_ID")
     private Integer restId;
 

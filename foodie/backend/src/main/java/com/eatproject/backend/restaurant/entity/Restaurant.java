@@ -60,4 +60,7 @@ public class Restaurant {
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
+
+    public void setLat(BigDecimal bigDecimal) {
+    }
 }

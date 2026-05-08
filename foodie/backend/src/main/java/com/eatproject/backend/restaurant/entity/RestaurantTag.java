@@ -1,5 +1,6 @@
 package com.eatproject.backend.restaurant.entity;
 
+import com.eatproject.backend.common.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,8 +27,8 @@ public class RestaurantTag {
     @JoinColumn(name = "REST_ID", nullable = false)
     private Restaurant restaurant;
 
-    @Column(name = "CATEGORY", nullable = false, length = 30)
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private CategoryType category;
 
     @Column(name = "CUSTOM_TAG", length = 100)
     private String customTag;

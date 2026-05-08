@@ -1,5 +1,6 @@
 package com.eatproject.backend.restaurant.dto;
 
+import com.eatproject.backend.common.CategoryType;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.util.List;
 public class RestaurantDto {
     private Integer restId;
     private String name;
-    private String address; // 추가: 사용자에게 보여줄 주소 정보
+    private String address;
     private BigDecimal lat;
     private BigDecimal lng;
     private String geohash;
@@ -46,7 +47,7 @@ public class RestaurantDto {
     @Getter @Setter
     public static class TagResponseDto {
         private Integer tagId;
-        private String category;
+        private CategoryType category;
         private String customTag;
     }
 }

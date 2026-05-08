@@ -21,8 +21,6 @@ import java.time.LocalDateTime;
 @ToString(exclude = {"menus", "images", "tags"})
 public class Restaurant {
 
-    @Enumerated(EnumType.STRING)
-    private CategoryType category;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rest_seq")
@@ -32,17 +30,21 @@ public class Restaurant {
     @Column(name = "NAME", length = 200, nullable = false)
     private String name;
 
-    @Column(name = "LAT", precision = 10, scale = 8, nullable = false)
+
+    @Column(name = "ADDRESS", length = 255)
+    private String address;
+
+    @Column(name = "LAT", nullable = false, precision = 13, scale = 10)
     private BigDecimal lat;
 
-    @Column(name = "LNG", precision = 11, scale = 8, nullable = false)
+    @Column(name = "LNG", nullable = false, precision = 13, scale = 10)
+
     private BigDecimal lng;
 
     @Column(name = "GEOHASH", length = 20, nullable = false)
     private String geohash;
 
-    @Column(name = "ADDRESS", length = 255, nullable = false)
-    private String address;
+
 
     @Column(name = "AVG_PRICE", nullable = false)
     @Builder.Default

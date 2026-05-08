@@ -7,23 +7,31 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "MEMBERS")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "password")
+@EqualsAndHashCode(of = "email")
 public class Member {
 
     @Id
-    @Column(name = "EMAIL", length = 255)
+    @Column(name = "EMAIL")
     private String email;
 
-    @Column(name = "PASSWORD", length = 512, nullable = false)
+    @Column(name = "PASSWORD", nullable = false, length = 512)
     private String password;
 
-    @Column(name = "NICKNAME", length = 50, nullable = false)
+    @Column(name = "NICKNAME", nullable = false, length = 50)
     private String nickname;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ROLE", length = 20, nullable = false)
+    // --- Role Enum 추가 ---
+    public enum Role {
+        USER, EDITOR, ADMIN
+    }
+
+    @Enumerated(EnumType.STRING) // DB에 "USER", "ADMIN" 등 문자열로 저장
+    @Column(name = "ROLE", nullable = false, length = 20)
     @Builder.Default
     private Role role = Role.USER;
 
@@ -37,13 +45,4 @@ public class Member {
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
-
-    // Admin 서비스에서 호출할 상태 변경 메서드
-    public void setIsBanned(Boolean banned) {
-        this.isBanned = banned;
-    }
-
-    public enum Role {
-        USER, EDITOR, ADMIN
-    }
 }

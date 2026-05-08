@@ -8,6 +8,7 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 
+@Setter
 @Entity
 @Table(name = "POSTS")
 @Getter

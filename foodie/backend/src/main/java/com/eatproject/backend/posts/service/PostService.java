@@ -1,7 +1,11 @@
 package com.eatproject.backend.posts.service;
 
+import com.eatproject.backend.admin.entity.SiteConfig;
+import com.eatproject.backend.admin.repository.SiteConfigRepository;
 import com.eatproject.backend.board.entity.Board;
 import com.eatproject.backend.board.repository.BoardRepository;
+import com.eatproject.backend.member.entity.Member;
+import com.eatproject.backend.member.repository.MemberRepository;
 import com.eatproject.backend.posts.dto.PostRequestDto;
 import com.eatproject.backend.posts.dto.PostResponseDto;
 import com.eatproject.backend.posts.entity.Post;
@@ -22,27 +26,43 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BoardRepository boardRepository;
+    private final MemberRepository memberRepository;
+    private final SiteConfigRepository siteConfigRepository; // 설정값 조회를 위해 추가
 
-    // 1. 특정 게시판의 스레드(OP) 목록 조회 (Bump 순)
     public Page<PostResponseDto> getThreadsByBoard(Integer boardId, Pageable pageable) {
         return postRepository.findAllByBoard_BoardIdAndDepthOrderByBumpAtDesc(boardId, 0, pageable)
                 .map(PostResponseDto::new);
     }
 
-    // 2. 특정 스레드의 답글 목록 조회
     public List<PostResponseDto> getRepliesByThread(Long threadId) {
         return postRepository.findAllByParentIdOrderByCreatedAtAsc(threadId).stream()
                 .map(PostResponseDto::new)
                 .collect(Collectors.toList());
     }
 
-    // 3. 게시글 작성 (OP 및 답글 통합)
     @Transactional
     public PostResponseDto createPost(PostRequestDto requestDto) {
+        // 1. 유저 및 게시판 조회
+        Member writer = memberRepository.findById(requestDto.getWriter())
+                .orElseThrow(() -> new IllegalArgumentException("가입된 유저만 글을 쓸 수 있습니다."));
+
         Board board = boardRepository.findById(requestDto.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시판입니다."));
 
-        // 답글(Reply)인 경우
+        // 2. [수정 포인트] Blog 게시판 권한 가드
+        // Member.Role이 Enum이 되었으므로, 타입에 맞춰 직접 비교합니다.
+        if ("blog".equals(board.getSlug())) {
+            // writer.getRole()이 이제 Member.Role 타입을 반환하므로 정상 작동합니다.
+            if (writer.getRole() != Member.Role.EDITOR && writer.getRole() != Member.Role.ADMIN) {
+                throw new IllegalStateException("블로그는 에디터 권한이 있는 유저만 작성 가능합니다.");
+            }
+        }
+
+        // 3. 사이트 설정값 조회 (잠금 및 분기 기준 확인용)
+        SiteConfig config = siteConfigRepository.findById(1)
+                .orElseThrow(() -> new IllegalStateException("시스템 설정이 존재하지 않습니다."));
+
+        // [답글(Reply) 로직]
         if (requestDto.getParentId() != null) {
             Post parentThread = postRepository.findById(requestDto.getParentId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스레드입니다."));
@@ -51,17 +71,28 @@ public class PostService {
                 throw new IllegalStateException("잠긴 스레드에는 답글을 작성할 수 없습니다.");
             }
 
-            // 원문(OP)의 댓글 수 증가 및 Bump 시간 갱신
+            // 원문(OP) 업데이트 (Bump 및 Reply 카운트)
             parentThread.updateOnNewReply();
 
-            // 추후 여기에 SITE_CONFIGS.THREAD_REPLY_LIMIT 초과 확인 및 스레드 자동 잠금 로직 추가 필요
+            // [추가] 스레드 자동 잠금 체크
+            if (parentThread.getReplyCount() >= config.getThreadReplyLimit()) {
+                parentThread.setIsLocked(true); // 엔티티에 Setter 혹은 lock() 메서드 필요
+                // TODO: 필요 시 자동 다음 스레드 생성 로직 연동
+            }
 
             Post reply = createEntity(requestDto, board, 1);
             return new PostResponseDto(postRepository.save(reply));
         }
 
-        // 스레드 원문(OP)인 경우
-        board.incrementPostCount(); // 게시판 전체 글 수 증가
+        // [스레드 원문(OP) 로직]
+        // [추가] 게시판 자동 분기 체크
+        if (board.getPostCount() >= config.getBoardThreadLimit()) {
+            // 이 시점에는 게시판을 아카이브하고 새 세대를 만들어야 합니다.
+            // board.setStatus("ARCHIVED");
+            // 현재는 간단히 에러를 내거나 관리를 유도할 수 있습니다.
+        }
+
+        board.incrementPostCount();
         Post opPost = createEntity(requestDto, board, 0);
         return new PostResponseDto(postRepository.save(opPost));
     }

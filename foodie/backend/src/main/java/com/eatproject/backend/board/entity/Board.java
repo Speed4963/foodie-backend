@@ -49,13 +49,14 @@ public class Board extends BaseTimeEntity {
 
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
-
     // 비즈니스 로직: 상태 변경 시 시간 기록 자동화
     public void updateStatus(String newStatus) {
         this.status = newStatus;
         this.statusChangedAt = LocalDateTime.now();
     }
-
+    public boolean isBlogType() {
+        return "blog".equals(this.slug) || "magazine".equals(this.slug);
+    }
     // 게시글 수 증가 (세대 분기 트리거용)
     public void incrementPostCount() {
         this.postCount++;

@@ -4,6 +4,8 @@ import com.eatproject.backend.posts.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -23,4 +25,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // [추가] 5. 게시판 내 키워드 검색 (간단한 버전)
     Page<Post> findAllByBoard_BoardIdAndContentContaining(Integer boardId, String content, Pageable pageable);
+
+//    트래픽집계용로직
+    List<Post> findAllByBoard_BoardIdAndCreatedAtBetween(
+            Integer boardId,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 }

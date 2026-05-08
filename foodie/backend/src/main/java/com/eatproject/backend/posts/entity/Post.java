@@ -8,10 +8,10 @@ import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 
-@Setter
 @Entity
 @Table(name = "POSTS")
 @Getter
+@Setter // 서비스 계층의 편의를 위해 유지 (혹은 필요한 필드에만 개별 적용 권장)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -28,14 +28,14 @@ public class Post extends BaseTimeEntity {
     private Board board;
 
     @Column(name = "PARENT_ID")
-    private Long parentId; // NULL이면 스레드 원문(OP), 값이 있으면 답글
+    private Long parentId;
 
     @Column(name = "QUOTE_ID")
-    private Long quoteId; // >>12345 인용 기능용
+    private Long quoteId;
 
     @Builder.Default
     @Column(name = "DEPTH", nullable = false)
-    private Integer depth = 0; // 0: OP, 1: Reply (체크 제약조건)
+    private Integer depth = 0;
 
     @Column(name = "WRITER", length = 255, nullable = false)
     private String writer;
@@ -71,15 +71,13 @@ public class Post extends BaseTimeEntity {
 
     @Lob
     @Column(name = "PREVIEW")
-    private String preview; // JSON/TEXT 캐시용
+    private String preview;
 
     @Column(name = "BUMP_AT", nullable = false)
     private LocalDateTime bumpAt;
 
-    @Column(name = "DELETED_AT")
-    private LocalDateTime deletedAt;
-
-    // 엔티티가 처음 저장될 때 BUMP_AT 초기화
+    // [삭제] @Column(name = "DELETED_AT") private LocalDateTime deletedAt;
+    // 이유: BaseTimeEntity 상속을 통해 이미 포함되어 있음
     @PrePersist
     public void prePersist() {
         if (this.bumpAt == null) {
@@ -87,16 +85,20 @@ public class Post extends BaseTimeEntity {
         }
     }
 
-    // 비즈니스 로직: 스레드 잠금 처리
+    // --- 비즈니스 로직 ---
+    /**
+     * 스레드 잠금 처리 (PostService에서 호출)
+     */
     public void lockThread() {
         this.isLocked = true;
         this.lockedAt = LocalDateTime.now();
     }
 
-    // 비즈니스 로직: 새 답글이 달렸을 때 호출 (스레드 끌어올리기 및 카운트 증가)
+    /**
+     * 새 답글 등록 시 호출 (카운트 증가 및 스레드 상단 노출용 시각 갱신)
+     */
     public void updateOnNewReply() {
         this.replyCount++;
         this.bumpAt = LocalDateTime.now();
     }
-
 }

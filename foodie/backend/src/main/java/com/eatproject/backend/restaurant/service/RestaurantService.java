@@ -159,6 +159,7 @@ public class RestaurantService {
         if (dto.getCustomTags() != null) {
             dto.getCustomTags().forEach(tagDto -> {
                 RestaurantTag tag = new RestaurantTag();
+                tag.setCategory(CategoryType.valueOf(tagDto.getCategory().toUpperCase()));
                 tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
                 restaurant.addRestaurantTag(tag);
             });
@@ -245,6 +246,7 @@ public class RestaurantService {
             restaurant.getTags().clear();
             dto.getCustomTags().forEach(tagDto -> {
                 RestaurantTag tag = new RestaurantTag();
+                tag.setCategory(CategoryType.valueOf(tagDto.getCategory().toUpperCase()));
                 tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
                 restaurant.addRestaurantTag(tag);
             });

@@ -1,0 +1,33 @@
+### 1. 식당 등록 테스트 (메뉴, 이미지, 태그 포함)
+POST http://localhost:8080/api/restaurants
+Content-Type: application/json
+
+{
+  "name": "인텔리제이 테스트 맛집",
+  "address": "부산광역시 연제구 중앙대로 1001",
+  "avgPrice": 30000,
+  "minPrice": 15000,
+  "maxPrice": 70000,
+  "menus": [
+    {
+      "pname": "모듬사시미",
+      "price": 55000,
+      "isRepresentative": true
+    },
+    {
+      "pname": "초밥 10pcs",
+      "price": 18000
+    }
+  ],
+  "images": [
+    {
+      "imgUrl": "https://example.com/sashimi.jpg",
+      "category": "FOOD",
+      "thumbUrl": "https://example.com/sashimi_thumb.jpg"
+    }
+  ],
+  "customTags": [
+    { "category": "MICHELIN", "customTag": "#인생맛집" },
+    { "category": "FAMOUS_CHEF", "customTag": "#셰프특선" }
+  ]
+}

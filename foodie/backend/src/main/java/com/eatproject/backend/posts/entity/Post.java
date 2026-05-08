@@ -87,15 +87,16 @@ public class Post extends BaseTimeEntity {
         }
     }
 
+    // 비즈니스 로직: 스레드 잠금 처리
+    public void lockThread() {
+        this.isLocked = true;
+        this.lockedAt = LocalDateTime.now();
+    }
+
     // 비즈니스 로직: 새 답글이 달렸을 때 호출 (스레드 끌어올리기 및 카운트 증가)
     public void updateOnNewReply() {
         this.replyCount++;
         this.bumpAt = LocalDateTime.now();
     }
 
-    // 비즈니스 로직: 스레드 잠금 처리
-    public void lockThread() {
-        this.isLocked = true;
-        this.lockedAt = LocalDateTime.now();
-    }
 }

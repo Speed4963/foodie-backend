@@ -1,0 +1,37 @@
+name: backend deploy
+
+on:
+  push:
+    branches: [ main ]   
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant execute permission
+        run: chmod +x backend/gradlew
+
+      - name: build
+        run: |
+          cd simpledmsreact
+          ./gradlew bootWar
+
+      - name: SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > was.pem
+          chmod 600 was.pem
+
+      - name: upload war
+        run: |
+          scp -o StrictHostKeyChecking=no -i was.pem \
+          simpledmsreact/build/libs/*.war \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~

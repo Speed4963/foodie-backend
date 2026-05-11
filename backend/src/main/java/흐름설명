@@ -1,0 +1,20 @@
+1. Repository
+   -DB에 SQL을 날려 데이터를 엔티티(Entity) 형태로 가져옵니다.
+    restaurantRepository.findAllByCategory(category)에서 호출
+    DB 테이블의 행(Row) 정보가 그대로 담긴 Restaurant 엔티티 객체가 생성
+
+   2.SERVICE
+    -Repository에서 엔티티 리스트를 받고
+     new RestaurantDto(entity)를 사용해 DTO의 필드를 복사
+
+   3. DTO
+    -데이터를 실어나르는 바구니
+    -SERVICE에서 CONTROLLER로 전달
+
+   4. CONTROLLER
+    -서비스 메서드를 호출해 List<RestaurantDto>를 리턴받음
+     return ResponseEntity.ok(dtoList);를 실행
+     JSON 형식으로 프론트에 건네줌
+
+    - ENTITY -> REPOSITORY -> SERVICE -> DTO -> CONTROLLER
+    - 프론트에서 DB는 역순

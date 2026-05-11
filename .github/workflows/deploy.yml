@@ -22,7 +22,7 @@ jobs:
 
       - name: build
         run: |
-          cd simpledmsreact
+          cd backend
           ./gradlew bootWar
 
       - name: SSH key

@@ -14,14 +14,14 @@ import java.util.Collection;
 @Getter
 public class SecurityUserDto extends User {
 
-    private final String carNumber; // 세션에 저장해둘 추가 정보
+    private final String nickname; // ERD의 NICKNAME 필드 반영
 
     public SecurityUserDto(String email,
                            String password,
                            Collection<? extends GrantedAuthority> authorities,
-                           String carNumber) {
-        // 부모 클래스인 User에게 기본 정보 전달 (email이 시큐리티의 username이 됨.)
+                           String nickname) {
+        // 부모 클래스인 User에게 email(username), password, authorities 전달
         super(email, password, authorities);
-        this.carNumber = carNumber;
+        this.nickname = nickname;
     }
 }

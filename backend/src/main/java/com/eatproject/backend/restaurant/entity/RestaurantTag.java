@@ -4,6 +4,9 @@ import com.eatproject.backend.common.CategoryType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "RESTAURANT_TAGS")
 @Getter
@@ -23,13 +26,14 @@ public class RestaurantTag {
     @Column(name = "TAG_ID")
     private Integer tagId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "REST_ID", nullable = false)
-    private Restaurant restaurant;
-
     @Enumerated(EnumType.STRING)
+    @Column(name = "CATEGORY", length = 30)
     private CategoryType category;
 
     @Column(name = "CUSTOM_TAG", length = 100)
     private String customTag;
+
+    // 이 태그를 참조하는 식당들
+    @OneToMany(mappedBy = "restaurantTag")
+    private List<Restaurant> restaurants = new ArrayList<>();
 }

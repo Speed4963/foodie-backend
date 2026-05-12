@@ -16,28 +16,23 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Integer> {
 
-    // 1. 키워드 검색 + 페이징 (직접 쿼리 작성 방식)
-    // @Param("searchKeyword")를 쓰면 쿼리문의 :searchKeyword와 연결됩니다.
+    // 1. 키워드 검색 + 페이징 (성능 최적화 버전)
     @Query("SELECT r FROM Restaurant r " +
+            "JOIN FETCH r.restaurantTag t " + // ✅ 목록 출력 시 카테고리 정보를 미리 가져옴
             "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) " +
             "AND r.deletedAt IS NULL")
     Page<Restaurant> selectRestaurantList(@Param("searchKeyword") String searchKeyword, Pageable pageable);
-
-    // 2. 단일 상세 조회 (ID 기준)
-    Optional<Restaurant> findByRestIdAndDeletedAtIsNull(Integer restId);
-
     /**
-     * 3. 상세 페이지용 (성능 최적화: Fetch Join)
+     * 3. 상세 페이지용 (수정 버전)
      */
     @Query("SELECT DISTINCT r FROM Restaurant r " +
-            "LEFT JOIN FETCH r.menus " +
-            "LEFT JOIN FETCH r.images " +
-            "WHERE r.restId = :restId AND r.deletedAt IS NULL")
+            "LEFT JOIN FETCH r.menus " +         // 메뉴는 즉시 로딩
+            "LEFT JOIN FETCH r.restaurantTag " +
+            "WHERE r.restId = :restId")
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
-
     // 4. 카테고리별 조회
-    @Query("SELECT DISTINCT r FROM Restaurant r " +
-            "JOIN r.tags t " +
+    @Query("SELECT r FROM Restaurant r " +
+            "JOIN FETCH r.restaurantTag t " + // r.tags -> r.restaurantTag로 변경 및 Fetch Join 추가
             "WHERE t.category = :category " +
             "AND r.deletedAt IS NULL")
     Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);

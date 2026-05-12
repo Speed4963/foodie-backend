@@ -4,15 +4,14 @@ import lombok.Getter;
 
 @Getter
 public enum CategoryType {
-    VEGAN("비건"),
-    BIZARRE("괴식"),
+    VEGETARIAN("채식사진"),
+    MAINSTREAM("주류"),
     EXOTIC("이국요리"),
-    CULTURE("컬쳐물"),
-    FAMOUS_CHEF("유명셰프"),
+    ECCENTRIC("괴식요리"),
+    FAMOUSCHEF("유명셰프"),
     MICHELIN("미슐랭"),
-    WORLD_LIQUOR("세계주류"),
-    THEME("테마"),
-    ANIMAL("동물");
+    KIDSZONE("키즈존"),
+    PETACCESS("동물출입");
 
     private final String description;
 

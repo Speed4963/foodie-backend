@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
         sequenceName = "RESTAURANT_IMAGE_SEQ",
         allocationSize = 50 // 이미지 역시 한 번에 여러 장 올라오므로 효율적입니다.
 )
-@ToString(exclude = {"restaurant", "menu"}) // 무한 루프 방지
+@ToString(exclude = {"restaurant"}) // 무한 루프 방지
 public class RestaurantImage {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_seq")
@@ -27,9 +27,6 @@ public class RestaurantImage {
     @JoinColumn(name = "REST_ID", nullable = false)
     private Restaurant restaurant;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "MENU_ID")
-    private Menu menu;
 
     @Column(name = "IMG_URL", nullable = false, length = 512)
     private String imgUrl;

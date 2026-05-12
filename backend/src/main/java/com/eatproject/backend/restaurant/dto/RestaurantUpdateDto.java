@@ -20,7 +20,8 @@ public class RestaurantUpdateDto {
 
     private List<MenuUpdateDto> menus;
     private List<ImageUpdateDto> images;
-    private List<TagUpdateDto> customTags;
+
+    private Integer tagId;
 
     @Getter @Setter
     public static class MenuUpdateDto {
@@ -40,10 +41,5 @@ public class RestaurantUpdateDto {
         private Integer displayOrder;
     }
 
-    @Getter @Setter
-    public static class TagUpdateDto {
-        private Integer tagId;
-        private String category;
-        private String customTag;
-    }
+
 }

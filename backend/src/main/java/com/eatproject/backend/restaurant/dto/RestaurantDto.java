@@ -21,11 +21,13 @@ public class RestaurantDto {
     private Integer minPrice;
     private Integer maxPrice;
     private LocalDateTime createdAt;
-    private String category;
+
+
+    private String category;   // Enum의 name값 (예: "VEGETARIAN")
+    private String customTag;  // 부모 테이블의 커스텀 태그 (예: "#비건인증")
 
     private List<MenuResponseDto> menus;
     private List<ImageResponseDto> images;
-    private List<TagResponseDto> tags;
 
     @Getter @Setter
     public static class MenuResponseDto {
@@ -44,10 +46,4 @@ public class RestaurantDto {
         private Boolean isMain;
     }
 
-    @Getter @Setter
-    public static class TagResponseDto {
-        private Integer tagId;
-        private CategoryType category;
-        private String customTag;
-    }
 }

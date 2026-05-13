@@ -21,7 +21,8 @@ public class RestaurantCreateDto {
 
     private List<MenuCreateDto> menus;
     private List<ImageCreateDto> images;
-    private List<TagCreateDto> customTags;
+
+    private Integer tagId;
 
     @Getter @Setter
     public static class MenuCreateDto {
@@ -37,11 +38,5 @@ public class RestaurantCreateDto {
         private String category;
         private Boolean isMain;
         private Integer displayOrder;
-    }
-
-    @Getter @Setter
-    public static class TagCreateDto {
-        private String category;
-        private String customTag;
     }
 }

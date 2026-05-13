@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import com.github.davidmoten.geo.GeoHash; // 지오해쉬
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "RESTAURANTS")
@@ -21,7 +22,7 @@ import com.github.davidmoten.geo.GeoHash; // 지오해쉬
         sequenceName = "RESTAURANT_SEQ",
         allocationSize = 50
 )
-@ToString(exclude = {"menus", "images", "tags"})
+@ToString(exclude = {"menus", "images", "restaurantTag"})
 public class Restaurant {
 
     @Id
@@ -29,10 +30,12 @@ public class Restaurant {
     @Column(name = "REST_ID")
     private Integer restId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "TAG_ID") // DB의 TAG_ID 컬럼(FK)과 연결
+    private RestaurantTag restaurantTag;
+
     @Column(name = "NAME", length = 200, nullable = false)
     private String name;
-
-
 
     @Column(name = "ADDRESS", length = 255)
     private String address;
@@ -69,21 +72,15 @@ public class Restaurant {
     private LocalDateTime deletedAt;
 
     // --- [연관 관계 설정] ---
-
-    // 1. 메뉴 (Soft Delete 적용을 위해 Cascade 설정)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     @Builder.Default
     private List<Menu> menus = new ArrayList<>();
 
-    // 2. 이미지 (Soft Delete 적용을 위해 Cascade 설정)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 100)
     @Builder.Default
     private List<RestaurantImage> images = new ArrayList<>();
-
-    // 3. 태그 (사용자 확인에 따라 이름은 tags, 메서드는 addRestaurantTag 사용)
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<RestaurantTag> tags = new ArrayList<>();
 
 
     // --- [편의 메서드: 양방향 관계를 위해 필수] ---
@@ -98,16 +95,19 @@ public class Restaurant {
         image.setRestaurant(this);
     }
 
-    public void addRestaurantTag(RestaurantTag tag) {
-        this.tags.add(tag);
-        tag.setRestaurant(this);
+    // [수정] 이제 Tag는 List가 아니므로 편의 메서드 대신 setter를 사용하거나 아래와 같이 작성합니다.
+    public void setCategoryTag(RestaurantTag tag) {
+        this.restaurantTag = tag;
+        // 필요 시 부모 쪽 리스트에도 추가 (양방향인 경우)
+        if (!tag.getRestaurants().contains(this)) {
+            tag.getRestaurants().add(this);
+        }
     }
+
     @PrePersist
-    @PreUpdate // 수정 시에도 위치가 바뀌면 갱신되도록 설정
+    @PreUpdate
     public void generateGeohash() {
         if (this.lat != null && this.lng != null) {
-            // 위도, 경도를 기반으로 Geohash 생성 (보통 7~9자리면 동네 단위 검색에 충분합니다)
-            // precision 10은 사용자님의 DB 컬럼 크기(20) 안에도 넉넉히 들어갑니다.
             this.geohash = GeoHash.encodeHash(this.lat.doubleValue(), this.lng.doubleValue(), 10);
         }
     }

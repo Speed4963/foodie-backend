@@ -13,6 +13,8 @@ import com.eatproject.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+
 
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class AdminService {
     private final SiteConfigRepository siteConfigRepository;
     private final MemberRepository memberRepository;
     private final BoardRepository boardRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void banUser(String adminEmail, String targetEmail, String reason) {
@@ -70,4 +73,6 @@ public class AdminService {
                         .createdAt(log.getCreatedAt()).build())
                 .toList();
     }
+
+
 }

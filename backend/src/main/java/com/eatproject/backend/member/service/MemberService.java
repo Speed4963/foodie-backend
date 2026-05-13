@@ -5,6 +5,7 @@ import com.eatproject.backend.member.entity.Member;
 import com.eatproject.backend.member.repository.MemberRepository;
 import com.eatproject.backend.common.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.format.DateTimeFormatter;
 
@@ -26,7 +28,7 @@ public class MemberService {
     // AuthenticationManagerBuilder 대신 직접 AuthenticationManager를 사용합니다.
     // (SecurityConfig에서 @Bean으로 등록되어 있어야 합니다.)
     private final AuthenticationManager authenticationManager;
-
+    private final ApplicationEventPublisher eventPublisher;
     /**
      * 로그인 로직
      * @param memberDto 이메일과 비밀번호가 담긴 DTO

@@ -1,7 +1,6 @@
 package com.eatproject.backend.notification.listener;
 
-package com.eatproject.backend.notification.listener;
-
+import com.eatproject.backend.notification.event.ActionEvent;
 import com.eatproject.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

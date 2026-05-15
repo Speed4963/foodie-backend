@@ -6,9 +6,15 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SystemEvent {
+public class ActionEvent {
 
     private NotificationType type;
 
-    private String targetEmail;
+    private String actor;      // 행동한 사람 (writer)
+    private String target;     // 알림 받는 사람
+
+    private Long postId;
+    private Integer boardId;
+
+    private String message;
 }

@@ -1,9 +1,9 @@
 package com.eatproject.backend.notification.listener;
 
+import com.eatproject.backend.notification.entity.NotificationType;
+import com.eatproject.backend.notification.event.SystemEvent;
+import com.eatproject.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import notification.entity.NotificationType;
-import notification.event.SystemEvent;
-import notification.service.NotificationService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SystemNotificationListener {
 
-    private final NotificationService service;
+    private final NotificationService notificationService;
 
-    // 시스템 점검 등
+
     @EventListener
-    public void handle(SystemEvent e) {
+    public void handle(SystemEvent event) {
 
-        service.create(
-                e.getTargetEmail(),
+        notificationService.create(
+                event.getTargetEmail(),
                 NotificationType.SYSTEM_MAINTENANCE,
                 null,
                 null,

@@ -1,9 +1,8 @@
 package com.eatproject.backend.notification.dto;
 
-
+import com.eatproject.backend.notification.entity.Notification;
+import com.eatproject.backend.notification.entity.NotificationType;
 import lombok.Getter;
-import notification.entity.Notification;
-import notification.entity.NotificationType;
 
 @Getter
 public class NotificationDto {
@@ -13,8 +12,8 @@ public class NotificationDto {
     private final Boolean isRead;
 
     public NotificationDto(Notification n) {
-        this.id = n.getNotiId();
+        this.id = n.getNotiId();     // ⭐ 여기 중요
         this.type = n.getType();
-        this.isRead = n.getIsRead();
+        this.isRead = n.getIsRead(); // ⭐ Boolean getter
     }
 }

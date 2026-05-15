@@ -1,11 +1,9 @@
 package com.eatproject.backend.notification.listener;
 
-
 import com.eatproject.backend.notification.entity.NotificationType;
 import com.eatproject.backend.notification.event.AdminEvent;
 import com.eatproject.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -13,20 +11,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AdminNotificationListener {
 
+    private final NotificationService notificationService;
 
-    private final NotificationService service;
-
-    // 게시판 승인, 추천 등
     @EventListener
-    public void handle(AdminEvent e) {
+    public void handle(AdminEvent event) {
 
-        service.create(
-                e.getTargetEmail(),
-                NotificationType.BOARD_RECOMMEND,
-                null,
-                e.getBoardId(),
-                e.getKeyword()
-
+        notificationService.create(
+                event.getTargetEmail(),   // 수신자
+                NotificationType.BOARD_RECOMMEND, // 알림 타입
+                null,                      // message (필요 시 event에 추가)
+                event.getBoardId(),       // 관련 게시글/게시판 ID
+                event.getKeyword()        // 추가 정보
         );
     }
 }

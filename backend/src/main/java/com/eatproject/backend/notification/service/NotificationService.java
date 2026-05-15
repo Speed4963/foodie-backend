@@ -1,6 +1,6 @@
 package com.eatproject.backend.notification.service;
 
-
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import com.eatproject.backend.notification.entity.Notification;
 import com.eatproject.backend.notification.entity.NotificationType;
@@ -36,6 +36,7 @@ public class NotificationService {
         return repository.findByTargetEmailOrderByCreatedAtDesc(email);
     }
 
+    @Transactional
     public void read(Long id) {
         Notification n = repository.findById(id).orElseThrow();
         n.markAsRead();

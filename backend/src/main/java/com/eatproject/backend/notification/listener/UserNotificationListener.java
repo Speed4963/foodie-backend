@@ -1,9 +1,9 @@
 package com.eatproject.backend.notification.listener;
 
+import com.eatproject.backend.notification.entity.NotificationType;
+import com.eatproject.backend.notification.event.UserEvent;
+import com.eatproject.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
-import notification.entity.NotificationType;
-import notification.event.UserEvent;
-import notification.service.NotificationService;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -11,18 +11,20 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserNotificationListener {
 
-    private final NotificationService service;
+    private final NotificationService notificationService;
 
-    // 댓글, 좋아요, 멘션 등 사용자 이벤트
+    /**
+     * 👤 사용자 이벤트 알림 처리
+     */
     @EventListener
-    public void handle(UserEvent e) {
+    public void handle(UserEvent event) {
 
-        service.create(
-                e.getTargetEmail(),
-                NotificationType.COMMENT_CREATED, // 연습용 고정
-                e.getPostId(),
-                e.getBoardId(),
-                e.getKeyword()
+        notificationService.create(
+                event.getTargetEmail(),
+                NotificationType.COMMENT_CREATED, // 임시 고정
+                event.getPostId(),
+                event.getBoardId(),
+                event.getKeyword()
         );
     }
 }

@@ -34,6 +34,12 @@ public class SecurityConfig {
         return new AuthTokenFilter();
     }
 
+    // AuthenticationConfiguration을 사용해 AuthenticationManager를 빈(Bean)으로 등록합니다.
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();

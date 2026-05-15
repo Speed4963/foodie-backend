@@ -6,6 +6,8 @@ import com.eatproject.backend.board.entity.Board;
 import com.eatproject.backend.board.repository.BoardRepository;
 import com.eatproject.backend.member.entity.Member;
 import com.eatproject.backend.member.repository.MemberRepository;
+import com.eatproject.backend.notification.enums.EventType;
+import com.eatproject.backend.notification.event.ActionEvent;
 import com.eatproject.backend.posts.dto.PostRequestDto;
 import com.eatproject.backend.posts.dto.PostResponseDto;
 import com.eatproject.backend.posts.entity.Post;
@@ -15,7 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.context.ApplicationEventPublisher;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,7 @@ public class PostService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final SiteConfigRepository siteConfigRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public Page<PostResponseDto> getThreadsByBoard(Integer boardId, Pageable pageable) {
         return postRepository.findAllByBoard_BoardIdAndDepthOrderByBumpAtDesc(boardId, 0, pageable)
@@ -66,6 +69,8 @@ public class PostService {
             Post parentThread = postRepository.findById(requestDto.getParentId())
                     .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 스레드입니다."));
 
+
+
             if (parentThread.getIsLocked()) {
                 throw new IllegalStateException("잠긴 스레드에는 답글을 작성할 수 없습니다.");
             }
@@ -76,10 +81,36 @@ public class PostService {
             // [수정 포인트] 엔티티에 이미 정의된 lockThread() 호출
             if (parentThread.getReplyCount() >= config.getThreadReplyLimit()) {
                 parentThread.lockThread();
+
+                //  THREAD_LOCKED 이벤트-Esther 추가
+                eventPublisher.publishEvent(
+                        new ActionEvent(
+                                EventType.THREAD_LOCKED,
+                                "SYSTEM",
+                                parentThread.getWriter(),
+                                parentThread.getPostId(),
+                                parentThread.getBoard().getBoardId(),
+                                "스레드가 자동 잠금되었습니다."
+                        )
+                );
             }
 
             Post reply = createEntity(requestDto, board, 1);
-            return new PostResponseDto(postRepository.save(reply));
+            Post savedReply = postRepository.save(reply);
+
+            // COMMENT / REPLY 이벤트 - Esther 추가
+            eventPublisher.publishEvent(
+                    new ActionEvent(
+                            parentThread.getParentId() == null ? EventType.COMMENT : EventType.REPLY,
+                            requestDto.getWriter(),                 // 작성자
+                            parentThread.getWriter(),               // 알림 대상
+                            parentThread.getPostId(),
+                            parentThread.getBoard().getBoardId(),
+                            "댓글이 달렸습니다."
+                    )
+            );
+
+            return new PostResponseDto(savedReply);
         }
 
         // [스레드 원문(OP) 로직]
@@ -105,4 +136,6 @@ public class PostService {
                 .thumbUrl(dto.getThumbUrl())
                 .build();
     }
+
+
 }

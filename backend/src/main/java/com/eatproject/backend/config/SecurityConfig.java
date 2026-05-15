@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**","/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/restaurants/**").permitAll()
                 .requestMatchers("/api/reservation/current" , "/api/me").authenticated() //  이 주소는 로그인한 사람만!
-                .requestMatchers("/main").permitAll()                                       // / (첫페이지)는 로그인 없이 모두 허용합니다.
+                .requestMatchers("/main","/api/member/**").permitAll()                                       // / (첫페이지)는 로그인 없이 모두 허용합니다.
                 .anyRequest().authenticated());                                           // 위의 주소 이외의 주소는 모두 로그인해야 볼 수 있습니다.
 
 //      4) 웹토큰 검사 필터 자동 실행

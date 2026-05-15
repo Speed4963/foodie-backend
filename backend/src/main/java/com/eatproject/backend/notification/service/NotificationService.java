@@ -1,10 +1,11 @@
 package com.eatproject.backend.notification.service;
 
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import com.eatproject.backend.notification.dto.NotificationDto;
 import com.eatproject.backend.notification.entity.Notification;
 import com.eatproject.backend.notification.entity.NotificationType;
 import com.eatproject.backend.notification.repository.NotificationRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -133,8 +134,12 @@ public class NotificationService {
     }
 
 
-    public List<Notification> getUserNotifications(String email) {
-        return repository.findByTargetEmailOrderByCreatedAtDesc(email);
+    public List<NotificationDto> getUserNotifications(String email) {
+
+        return repository.findByTargetEmailOrderByCreatedAtDesc(email)
+                .stream()
+                .map(NotificationDto::new)
+                .toList();
     }
 
     @Transactional

@@ -8,6 +8,9 @@ public enum NotificationType {
     POST_LIKED,
     MENTION,
 
+    COMMENT,
+    REPLY,
+
     THREAD_LOCKED,
     THREAD_MIGRATED,
 
@@ -19,6 +22,8 @@ public enum NotificationType {
 
     POST_HIDDEN,
     USER_BANNED,
+
+
 
     SYSTEM_CONFIG_CHANGED
 

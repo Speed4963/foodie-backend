@@ -13,10 +13,7 @@ public class SystemNotificationListener {
 
     private final NotificationService notificationService;
 
-    /**
-     * 🛠 시스템 알림 처리
-     * - 점검 / 정책 변경 / 공지
-     */
+
     @EventListener
     public void handle(SystemEvent event) {
 

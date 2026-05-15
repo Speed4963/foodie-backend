@@ -13,15 +13,14 @@ public class UserNotificationListener {
 
     private final NotificationService notificationService;
 
-    /**
-     * 👤 사용자 이벤트 알림 처리
-     */
+
     @EventListener
     public void handle(UserEvent event) {
 
-        notificationService.create(
+        notificationService.dispatch(
+                NotificationType.COMMENT_CREATED,
+                null,
                 event.getTargetEmail(),
-                NotificationType.COMMENT_CREATED, // 임시 고정
                 event.getPostId(),
                 event.getBoardId(),
                 event.getKeyword()

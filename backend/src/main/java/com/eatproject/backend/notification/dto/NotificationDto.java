@@ -1,6 +1,5 @@
 package com.eatproject.backend.notification.dto;
 
-package notification.dto;
 
 import lombok.Getter;
 import notification.entity.Notification;

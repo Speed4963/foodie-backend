@@ -1,5 +1,6 @@
 package com.eatproject.backend.notification.service;
 
+
 import lombok.RequiredArgsConstructor;
 import com.eatproject.backend.notification.entity.Notification;
 import com.eatproject.backend.notification.entity.NotificationType;

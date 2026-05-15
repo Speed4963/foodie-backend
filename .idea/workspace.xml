@@ -33,19 +33,6 @@
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="foodie-backend" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="foodie-backend" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -63,6 +50,7 @@
       <updated>1778471439249</updated>
       <workItem from="1778471441288" duration="13000" />
       <workItem from="1778471467005" duration="10000" />
+      <workItem from="1778718568247" duration="3000" />
     </task>
     <servers />
   </component>

@@ -1,15 +1,14 @@
 package com.eatproject.backend.notification.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "NOTIFICATIONS")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor
 public class Notification {
 
     @Id
@@ -18,16 +17,32 @@ public class Notification {
 
     private String targetEmail;
 
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
 
-    private Boolean isRead;
-
-    private Integer refBoardId;
+    private Boolean isRead = false;
 
     private Long refPostId;
 
-    private String message;
+    private Integer refBoardId;
 
-    @Builder.Default
+    private String keyword;
+
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Notification(String targetEmail,
+                        NotificationType type,
+                        Long refPostId,
+                        Integer refBoardId,
+                        String keyword) {
+        this.targetEmail = targetEmail;
+        this.type = type;
+        this.refPostId = refPostId;
+        this.refBoardId = refBoardId;
+        this.keyword = keyword;
+    }
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }

@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 backend/.gradle/8.14.4/checksums/checksums.lock
 backend/.gradle/8.14.4/checksums/md5-checksums.bin
 backend/.gradle/8.14.4/checksums/sha1-checksums.bin
@@ -30,3 +31,8 @@ foodie/.idea/modules/Foodie.iml
 foodie/.idea/modules/Foodie.main.iml
 foodie/.idea/modules/Foodie.test.iml
 backend/.idea/workspace.xml
+=======
+foodie/.idea/modules/Foodie.main.iml
+foodie/.idea/workspace.xml
+>>>>>>> Stashed changes
+foodie/.idea/workspace.xml

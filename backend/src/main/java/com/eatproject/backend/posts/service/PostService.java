@@ -6,18 +6,24 @@ import com.eatproject.backend.board.entity.Board;
 import com.eatproject.backend.board.repository.BoardRepository;
 import com.eatproject.backend.member.entity.Member;
 import com.eatproject.backend.member.repository.MemberRepository;
-import com.eatproject.backend.notification.enums.EventType;
-import com.eatproject.backend.notification.event.ActionEvent;
+import com.eatproject.backend.notification.entity.NotificationType;
+
+import com.eatproject.backend.notification.event.UserEvent;
+import com.eatproject.backend.notification.event.AdminEvent;
+import com.eatproject.backend.notification.event.SystemEvent;
 import com.eatproject.backend.posts.dto.PostRequestDto;
 import com.eatproject.backend.posts.dto.PostResponseDto;
 import com.eatproject.backend.posts.entity.Post;
 import com.eatproject.backend.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
+
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -84,8 +90,8 @@ public class PostService {
 
                 //  THREAD_LOCKED 이벤트-Esther 추가
                 eventPublisher.publishEvent(
-                        new ActionEvent(
-                                EventType.THREAD_LOCKED,
+                        new UserEvent(
+                                NotificationType.THREAD_LOCKED,
                                 "SYSTEM",
                                 parentThread.getWriter(),
                                 parentThread.getPostId(),
@@ -98,12 +104,13 @@ public class PostService {
             Post reply = createEntity(requestDto, board, 1);
             Post savedReply = postRepository.save(reply);
 
-            // COMMENT / REPLY 이벤트 - Esther 추가
             eventPublisher.publishEvent(
-                    new ActionEvent(
-                            parentThread.getParentId() == null ? EventType.COMMENT : EventType.REPLY,
-                            requestDto.getWriter(),                 // 작성자
-                            parentThread.getWriter(),               // 알림 대상
+                    new UserEvent(
+                            parentThread.getParentId() == null
+                                    ? NotificationType.COMMENT
+                                    : NotificationType.REPLY,
+                            requestDto.getWriter(),
+                            parentThread.getWriter(),
                             parentThread.getPostId(),
                             parentThread.getBoard().getBoardId(),
                             "댓글이 달렸습니다."

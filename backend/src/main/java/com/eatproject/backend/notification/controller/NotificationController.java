@@ -17,6 +17,7 @@ public class NotificationController {
     // 내 알림 조회
     @GetMapping
     public List<Notification> get(@RequestParam String email) {
+
         return service.getUserNotifications(email);
     }
 

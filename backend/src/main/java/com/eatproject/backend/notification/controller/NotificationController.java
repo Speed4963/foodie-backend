@@ -1,6 +1,6 @@
 package com.eatproject.backend.notification.controller;
 
-import com.eatproject.backend.notification.entity.Notification;
+import com.eatproject.backend.notification.dto.NotificationDto;
 import com.eatproject.backend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +16,7 @@ public class NotificationController {
 
     // 내 알림 조회
     @GetMapping
-    public List<Notification> get(@RequestParam String email) {
+    public List<NotificationDto> get(@RequestParam String email) {
 
         return service.getUserNotifications(email);
     }

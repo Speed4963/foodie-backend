@@ -16,12 +16,13 @@ public class AdminNotificationListener {
     @EventListener
     public void handle(AdminEvent event) {
 
-        notificationService.create(
-                event.getTargetEmail(),   // 수신자
-                NotificationType.BOARD_RECOMMEND, // 알림 타입
-                null,                      // message (필요 시 event에 추가)
-                event.getBoardId(),       // 관련 게시글/게시판 ID
-                event.getKeyword()        // 추가 정보
+        notificationService.dispatch(
+                NotificationType.BOARD_RECOMMEND,
+                null,                       // actorEmail (없으면 null)
+                event.getTargetEmail(),     // targetEmail
+                null,                       // postId
+                event.getBoardId(),         // boardId
+                event.getKeyword()          // keyword
         );
     }
 }

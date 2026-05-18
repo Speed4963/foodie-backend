@@ -17,9 +17,10 @@ public class SystemNotificationListener {
     @EventListener
     public void handle(SystemEvent event) {
 
-        notificationService.create(
-                event.getTargetEmail(),
+        notificationService.dispatch(
                 NotificationType.SYSTEM_MAINTENANCE,
+                null,
+                event.getTargetEmail(),
                 null,
                 null,
                 null

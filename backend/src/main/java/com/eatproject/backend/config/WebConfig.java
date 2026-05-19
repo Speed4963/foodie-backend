@@ -31,6 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .allowCredentials(true)
                 .maxAge(3600);
+
     }
 
     // 2. 정적 리소스(이미지) 핸들러 설정 (추가)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="68885bc0-b3c0-4655-a70b-016910611521" name="변경" comment="" />
+    <list default="true" id="12e5ace0-1e27-4640-b15a-1ccc2b63257d" name="변경" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +14,7 @@
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 1
 }</component>
-  <component name="ProjectId" id="3DYugkyvX4mNFNW46thDYlVEIYy" />
+  <component name="ProjectId" id="3DvZLMTiudulrYteIMtupnuP3J5" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -25,27 +25,11 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;LSS&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dy&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager">
-    <configuration default="true" type="JetRunConfigurationType">
-      <module name="foodie-backend" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
-      <module name="foodie-backend" />
-      <option name="filePath" />
-      <method v="2" />
-    </configuration>
-  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -56,13 +40,13 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="디폴트 작업">
-      <changelist id="68885bc0-b3c0-4655-a70b-016910611521" name="변경" comment="" />
-      <created>1778471439249</created>
+      <changelist id="12e5ace0-1e27-4640-b15a-1ccc2b63257d" name="변경" comment="" />
+      <created>1779164447325</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1778471439249</updated>
-      <workItem from="1778471441288" duration="13000" />
-      <workItem from="1778471467005" duration="10000" />
+      <updated>1779164447325</updated>
+      <workItem from="1779164449348" duration="230000" />
+      <workItem from="1779164694689" duration="14000" />
     </task>
     <servers />
   </component>

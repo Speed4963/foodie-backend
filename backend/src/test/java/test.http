@@ -1,5 +1,5 @@
 ### 1. 신규 식당 등록 (POST)
-# 카테고리 ID 1번(채식)과 연결된 식당을 생성합니다.
+# 서버에서 태그(tagId: 1)가 데이터베이스에 이미 존재하는지 확인 후 요청하세요.
 POST http://localhost:8080/api/restaurants
 Content-Type: application/json
 
@@ -26,27 +26,53 @@ Content-Type: application/json
     {
       "imgUrl": "https://example.com/food_main.jpg",
       "category": "MAIN",
-      "isMain": true
+      "isMain": true,
+      "displayOrder": 1
     }
   ]
 }
-
-###
 
 ### 2. 전체 식당 목록 조회 (GET)
 GET http://localhost:8080/api/restaurants?page=0&size=10
 Accept: application/json
 
-###
-
 ### 3. 특정 카테고리별 식당 조회 (GET)
-# 채식(VEGETARIAN) 카테고리의 식당만 필터링합니다.
 GET http://localhost:8080/api/restaurants/category/VEGETARIAN
 Accept: application/json
 
-###
-
 ### 4. 식당 단건 상세 조회 (GET)
-# 위에서 등록한 ID(예: 1)를 넣어 확인하세요.
-GET http://localhost:8080/api/restaurants/1
+# 위 1번 요청의 응답으로 받은 ID를 입력하세요.
+GET http://localhost:8080/api/restaurants/752
+Accept: application/json
+
+### 5. 식당 정보 수정 (PUT)
+# 기존 정보를 업데이트합니다.
+PUT http://localhost:8080/api/restaurants/752
+Content-Type: application/json
+
+{
+  "name": "수정된 테스트 맛집",
+  "address": "부산광역시 해운대구 우동 456",
+  "avgPrice": 25000,
+  "minPrice": 20000,
+  "maxPrice": 40000,
+  "tagId": 1,
+  "description": "수정된 상세 설명입니다.",
+  "phone": "051-123-4567",
+  "menus": [
+    {
+      "pName": "수정된 콩고기 스테이크",
+      "price": 19000,
+      "isRepresentative": true
+    }
+  ]
+}
+
+### 6. 카테고리 마스터 정보 수정 (PUT)
+# 태그 ID 1번의 커스텀 태그 이름을 변경합니다.
+PUT http://localhost:8080/api/restaurants/categories/1?customTag=비건인증
+Accept: application/json
+
+### 7. 식당 삭제 (DELETE)
+DELETE http://localhost:8080/api/restaurants/1
 Accept: application/json

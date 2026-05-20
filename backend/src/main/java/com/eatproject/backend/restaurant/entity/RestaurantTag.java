@@ -27,7 +27,7 @@ public class RestaurantTag {
     private Integer tagId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "CATEGORY", length = 30)
+    @Column(name = "CATEGORY", nullable = false, length = 30)
     private CategoryType category;
 
     @Column(name = "CUSTOM_TAG", length = 100)

@@ -10,6 +10,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder // 서비스 레이어 변환 편의를 위해 추가
+@ToString
 public class RestaurantDto {
     private Integer restId;
     private String name;
@@ -20,8 +22,15 @@ public class RestaurantDto {
     private Integer avgPrice;
     private Integer minPrice;
     private Integer maxPrice;
-    private LocalDateTime createdAt;
 
+    // 🌟 [신규 추가 필드]
+    private String description;
+    private String phone;
+    private String businessHours;
+    private String closedDays;
+    private String snsUrl;
+
+    private LocalDateTime createdAt;
 
     private String category;   // Enum의 name값 (예: "VEGETARIAN")
     private String customTag;  // 부모 테이블의 커스텀 태그 (예: "#비건인증")
@@ -30,6 +39,9 @@ public class RestaurantDto {
     private List<ImageResponseDto> images;
 
     @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class MenuResponseDto {
         private Integer menuId;
         private String pName;
@@ -38,6 +50,9 @@ public class RestaurantDto {
     }
 
     @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ImageResponseDto {
         private Long imgId;
         private String imgUrl;
@@ -45,5 +60,4 @@ public class RestaurantDto {
         private String category;
         private Boolean isMain;
     }
-
 }

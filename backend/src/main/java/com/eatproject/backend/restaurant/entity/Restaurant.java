@@ -1,12 +1,17 @@
 package com.eatproject.backend.restaurant.entity;
 
 
+import com.eatproject.backend.restaurant.dto.RestaurantDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.github.davidmoten.geo.GeoHash; // 지오해쉬
 import org.hibernate.annotations.BatchSize;
 
@@ -60,6 +65,22 @@ public class Restaurant {
     @Column(name = "MAX_PRICE")
     private Integer maxPrice;
 
+    // 🌟 [신규 추가 필드]
+    @Column(name = "DESCRIPTION", length = 1000)
+    private String description;
+
+    @Column(name = "PHONE", length = 20)
+    private String phone;
+
+    @Column(name = "BUSINESS_HOURS", length = 255)
+    private String businessHours;
+
+    @Column(name = "CLOSED_DAYS", length = 255)
+    private String closedDays;
+
+    @Column(name = "SNS_URL", length = 255)
+    private String snsUrl;
+
     @Column(name = "LAST_SYNC_AT", nullable = false)
     @Builder.Default
     private LocalDateTime lastSyncAt = LocalDateTime.now();
@@ -73,14 +94,14 @@ public class Restaurant {
 
     // --- [연관 관계 설정] ---
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 100)
+    @BatchSize(size = 20)
     @Builder.Default
-    private List<Menu> menus = new ArrayList<>();
+    private Set<Menu> menus = new HashSet<>();
 
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @BatchSize(size = 100)
+    @BatchSize(size = 20)
     @Builder.Default
-    private List<RestaurantImage> images = new ArrayList<>();
+    private Set<RestaurantImage> images = new HashSet<>();
 
 
     // --- [편의 메서드: 양방향 관계를 위해 필수] ---
@@ -110,5 +131,46 @@ public class Restaurant {
         if (this.lat != null && this.lng != null) {
             this.geohash = GeoHash.encodeHash(this.lat.doubleValue(), this.lng.doubleValue(), 10);
         }
+    }
+    // Restaurant.java 내부
+    public RestaurantDto toFullDto() {
+        return RestaurantDto.builder()
+                .restId(this.restId)
+                .name(this.name)
+                .address(this.address)
+                .lat(this.lat)
+                .lng(this.lng)
+                .geohash(this.geohash)
+                .avgPrice(this.avgPrice)
+                .minPrice(this.minPrice)
+                .maxPrice(this.maxPrice)
+                .description(this.description)
+                .phone(this.phone)
+                .businessHours(this.businessHours)
+                .closedDays(this.closedDays)
+                .snsUrl(this.snsUrl)
+                .createdAt(this.createdAt)
+                .category(this.restaurantTag != null ? this.restaurantTag.getCategory().name() : null)
+                .customTag(this.restaurantTag != null ? "#" + this.restaurantTag.getCustomTag() : null)
+                // 메뉴 매핑
+                .menus(this.menus.stream()
+                        .filter(m -> m.getDeletedAt() == null)
+                        .map(m -> RestaurantDto.MenuResponseDto.builder()
+                                .menuId(m.getMenuId())
+                                .pName(m.getPName())
+                                .price(m.getPrice())
+                                .isRepresentative(m.getIsRepresentative())
+                                .build()).collect(Collectors.toList()))
+                // 이미지 매핑
+                .images(this.images.stream()
+                        .filter(i -> i.getDeletedAt() == null)
+                        .map(i -> RestaurantDto.ImageResponseDto.builder()
+                                .imgId(i.getImgId())
+                                .imgUrl(i.getImgUrl())
+                                .thumbUrl(i.getThumbUrl())
+                                .category(i.getCategory())
+                                .isMain(i.getIsMain())
+                                .build()).collect(Collectors.toList()))
+                .build();
     }
 }

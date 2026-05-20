@@ -6,15 +6,15 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ActionEvent {
+public class UserEvent {
 
     private NotificationType type;
 
-    private String actor;      // 행동한 사람 (writer)
-    private String target;     // 알림 받는 사람
+    private String actorEmail;
+    private String targetEmail;
 
     private Long postId;
     private Integer boardId;
 
-    private String message;
+    private String keyword;
 }

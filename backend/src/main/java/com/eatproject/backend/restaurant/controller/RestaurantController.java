@@ -48,9 +48,9 @@ public class RestaurantController {
     }
 
     @GetMapping("/{restId}")
-    public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("id") Integer id) {
-        log.info("식당 상세 조회 - ID: {}", id);
-        return ResponseEntity.ok(restaurantService.findById(id));
+    public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("restId") Integer restId) {
+        log.info("식당 상세 조회 - ID: {}", restId);
+        return ResponseEntity.ok(restaurantService.findById(restId));
     }
 
     // --- [관리자 전용 기능] ---
@@ -61,19 +61,19 @@ public class RestaurantController {
         return ResponseEntity.status(201).body(restaurantService.saveRestaurant(createDto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{restId}")
     public ResponseEntity<Void> updateRestaurant(
-            @PathVariable("id") Integer id,
+            @PathVariable("restId") Integer restId,
             @Valid @RequestBody RestaurantUpdateDto updateDto) {
-        log.info("식당 정보 수정 - ID: {}", id);
-        restaurantService.updateRestaurant(id, updateDto);
+        log.info("식당 정보 수정 - ID: {}", restId);
+        restaurantService.updateRestaurant(restId, updateDto);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable("id") Integer id) {
-        log.info("식당 삭제 요청 - ID: {}", id);
-        restaurantService.deleteRestaurant(id);
+    @DeleteMapping("/{restId}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable("restId") Integer restId) {
+        log.info("식당 삭제 요청 - ID: {}", restId);
+        restaurantService.deleteRestaurant(restId);
         return ResponseEntity.noContent().build();
     }
 

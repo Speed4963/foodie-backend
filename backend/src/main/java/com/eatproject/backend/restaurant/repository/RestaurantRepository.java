@@ -15,11 +15,12 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Integer> {
 
-    // 1. 키워드 검색 + 페이징 (성능 최적화 버전)
-    @Query("SELECT r FROM Restaurant r " +
-            "JOIN FETCH r.restaurantTag t " + // ✅ 목록 출력 시 카테고리 정보를 미리 가져옴
+    @Query(value = "SELECT DISTINCT r FROM Restaurant r " +
+            "LEFT JOIN FETCH r.restaurantTag " +
+            "LEFT JOIN FETCH r.images " + // ✅ 목록 조회에도 이미지 추가
             "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) " +
-            "AND r.deletedAt IS NULL")
+            "AND r.deletedAt IS NULL",
+            countQuery = "SELECT COUNT(r) FROM Restaurant r WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) AND r.deletedAt IS NULL")
     Page<Restaurant> selectRestaurantList(@Param("searchKeyword") String searchKeyword, Pageable pageable);
 
     /**

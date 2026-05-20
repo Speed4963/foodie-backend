@@ -20,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Log4j2
 @Service
@@ -44,7 +47,31 @@ public class RestaurantService {
             dto.setPhone(e.getPhone());
             dto.setBusinessHours(e.getBusinessHours());
             dto.setClosedDays(e.getClosedDays());
-            if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
+
+            if (e.getRestaurantTag() != null) {
+                dto.setCategory(e.getRestaurantTag().getCategory().name());
+            }
+
+            // ✅ 이미지 리스트 변환 및 세팅
+            if (e.getImages() != null) {
+                List<RestaurantImage> validImages = e.getImages().stream()
+                        .filter(i -> i.getDeletedAt() == null)
+                        .collect(Collectors.toList());
+
+                dto.setImages(IntStream.range(0, validImages.size())
+                        .mapToObj(i -> {
+                            RestaurantImage img = validImages.get(i);
+                            return RestaurantDto.ImageResponseDto.builder()
+                                    .imgId(img.getImgId())
+                                    .imgUrl("http://localhost:8080" + img.getImgUrl())
+                                    .category(img.getCategory())
+                                    .isMain(i == 0) // ✅ 0번째 인덱스(첫 번째 사진)만 true
+                                    .build();
+                        })
+                        .collect(Collectors.toList())
+                );
+            }
+
             return dto;
         });
     }
@@ -72,42 +99,65 @@ public class RestaurantService {
         }
     }
 
-        public RestaurantDto findById(Integer id) {
-            Restaurant e = restaurantRepository.findByIdWithAllDetails(id)
-                    .orElseThrow(() -> new RuntimeException("해당 식당 정보를 찾을 수 없습니다."));
+    public RestaurantDto findById(Integer id) {
+        Restaurant e = restaurantRepository.findByIdWithAllDetails(id)
+                .orElseThrow(() -> new RuntimeException("해당 식당 정보를 찾을 수 없습니다."));
 
-            RestaurantDto dto = new RestaurantDto();
-            dto.setRestId(e.getRestId());
-            dto.setName(e.getName());
-            dto.setAddress(e.getAddress());
-            dto.setLat(e.getLat());
-            dto.setLng(e.getLng());
-            dto.setGeohash(e.getGeohash());
-            dto.setAvgPrice(e.getAvgPrice());
-            dto.setMinPrice(e.getMinPrice());
-            dto.setMaxPrice(e.getMaxPrice());
-            dto.setDescription(e.getDescription());
-            dto.setPhone(e.getPhone());
-            dto.setBusinessHours(e.getBusinessHours());
-            dto.setClosedDays(e.getClosedDays());
-            dto.setSnsUrl(e.getSnsUrl());
-            dto.setCreatedAt(e.getCreatedAt());
+        RestaurantDto dto = new RestaurantDto();
+        dto.setRestId(e.getRestId());
+        dto.setName(e.getName());
+        dto.setAddress(e.getAddress());
+        dto.setLat(e.getLat());
+        dto.setLng(e.getLng());
+        dto.setGeohash(e.getGeohash());
+        dto.setAvgPrice(e.getAvgPrice());
+        dto.setMinPrice(e.getMinPrice());
+        dto.setMaxPrice(e.getMaxPrice());
+        dto.setDescription(e.getDescription());
+        dto.setPhone(e.getPhone());
+        dto.setBusinessHours(e.getBusinessHours());
+        dto.setClosedDays(e.getClosedDays());
+        dto.setSnsUrl(e.getSnsUrl());
+        dto.setCreatedAt(e.getCreatedAt());
 
-            if (e.getRestaurantTag() != null) {
-                dto.setCategory(e.getRestaurantTag().getCategory().name());
-                dto.setCustomTag("#" + e.getRestaurantTag().getCustomTag());
-            }
-
-            dto.setMenus(e.getMenus().stream().filter(m -> m.getDeletedAt() == null).map(m ->
-                    RestaurantDto.MenuResponseDto.builder().menuId(m.getMenuId()).pName(m.getPName()).price(m.getPrice()).isRepresentative(m.getIsRepresentative()).build()
-            ).collect(Collectors.toList()));
-
-            dto.setImages(e.getImages().stream().filter(i -> i.getDeletedAt() == null).map(i ->
-                    RestaurantDto.ImageResponseDto.builder().imgId(i.getImgId()).imgUrl(i.getImgUrl()).category(i.getCategory()).isMain(i.getIsMain()).build()
-            ).collect(Collectors.toList()));
-
-            return dto;
+        if (e.getRestaurantTag() != null) {
+            dto.setCategory(e.getRestaurantTag().getCategory().name());
+            dto.setCustomTag("#" + e.getRestaurantTag().getCustomTag());
         }
+
+        // 메뉴 매핑 (기존과 동일)
+        dto.setMenus(e.getMenus().stream()
+                .filter(m -> m.getDeletedAt() == null)
+                .map(m -> RestaurantDto.MenuResponseDto.builder()
+                        .menuId(m.getMenuId())
+                        .pName(m.getPName())
+                        .price(m.getPrice())
+                        .isRepresentative(m.getIsRepresentative())
+                        .build())
+                .collect(Collectors.toList()));
+
+        // ✅ 이미지 매핑 (selectRestaurantList와 동일한 로직 적용)
+        if (e.getImages() != null) {
+            List<RestaurantImage> validImages = e.getImages().stream()
+                    .filter(i -> i.getDeletedAt() == null)
+                    .collect(Collectors.toList());
+
+            dto.setImages(IntStream.range(0, validImages.size())
+                    .mapToObj(i -> {
+                        RestaurantImage img = validImages.get(i);
+                        return RestaurantDto.ImageResponseDto.builder()
+                                .imgId(img.getImgId())
+                                .imgUrl("http://localhost:8080" + img.getImgUrl()) // 경로 조합
+                                .category(img.getCategory())
+                                .isMain(i == 0) // 첫 번째 사진을 메인으로
+                                .build();
+                    })
+                    .collect(Collectors.toList())
+            );
+        }
+
+        return dto;
+    }
 
     // --- [등록 / 수정 / 삭제] ---
 
@@ -193,5 +243,26 @@ public class RestaurantService {
     @Transactional
     public void deleteRestaurant(Integer id) {
         restaurantRepository.findByIdWithAllDetails(id).orElseThrow().setDeletedAt(LocalDateTime.now());
+    }
+    private List<RestaurantDto.ImageResponseDto> mapImages(List<RestaurantImage> images) {
+        if (images == null) return Collections.emptyList();
+
+        // 1. 삭제되지 않은 이미지들만 정렬하여 가져옴
+        List<RestaurantImage> validImages = images.stream()
+                .filter(i -> i.getDeletedAt() == null)
+                .collect(Collectors.toList());
+
+        // 2. 인덱스(i)를 활용해 첫 번째만 isMain = true로 설정
+        return IntStream.range(0, validImages.size())
+                .mapToObj(i -> {
+                    RestaurantImage img = validImages.get(i);
+                    return RestaurantDto.ImageResponseDto.builder()
+                            .imgId(img.getImgId())
+                            .imgUrl(img.getImgUrl())
+                            .category(img.getCategory())
+                            .isMain(i == 0) // ✅ 0번째만 true, 나머지는 false
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

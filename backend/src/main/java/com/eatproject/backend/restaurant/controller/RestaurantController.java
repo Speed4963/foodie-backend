@@ -12,6 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 
 @Log4j2
 @RestController
@@ -39,7 +47,7 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.selectRestaurantListByCategory(category, pageable));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{restId}")
     public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("id") Integer id) {
         log.info("식당 상세 조회 - ID: {}", id);
         return ResponseEntity.ok(restaurantService.findById(id));
@@ -77,4 +85,33 @@ public class RestaurantController {
         restaurantService.updateCategoryInfo(tagId, customTag);
         return ResponseEntity.ok().build();
     }
-}
+    private final String UPLOAD_DIR = "C:/work/Foodieupload/"; // 서버 실제 경로
+
+    @PostMapping("/images/upload")
+    public ResponseEntity<List<String>> uploadImages(@RequestParam("files") List<MultipartFile> files) {
+        List<String> fileUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            try {
+                File dir = new File(UPLOAD_DIR);
+                if (!dir.exists()) dir.mkdirs();
+
+                String originalName = file.getOriginalFilename();
+                String ext = originalName.substring(originalName.lastIndexOf("."));
+                String fileName = UUID.randomUUID().toString() + ext;
+                File dest = new File(UPLOAD_DIR + fileName);
+
+                file.transferTo(dest);
+
+                // 저장된 경로를 리스트에 추가
+                fileUrls.add("/uploads/" + fileName);
+            } catch (IOException e) {
+                log.error("파일 저장 실패", e);
+                return ResponseEntity.internalServerError().build();
+            }
+        }
+        return ResponseEntity.ok(fileUrls);
+    }
+    }

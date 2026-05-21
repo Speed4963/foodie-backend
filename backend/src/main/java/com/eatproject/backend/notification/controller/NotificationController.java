@@ -17,9 +17,8 @@ public class NotificationController {
 
     // 내 알림 조회
     @GetMapping
-    public List<NotificationDto> get(@RequestParam String email) {
-
-        return service.getUserNotifications(email);
+    public List<NotificationDto> get(Authentication auth) {
+        return service.getUserNotifications(auth.getName());
     }
 
     // 읽음 처리

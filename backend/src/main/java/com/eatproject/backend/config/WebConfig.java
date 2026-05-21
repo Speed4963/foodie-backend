@@ -41,5 +41,8 @@ public class WebConfig implements WebMvcConfigurer {
         // 서버의 실제 uploadDir 폴더 안의 파일을 찾아줌
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:" + uploadDir + "/");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:///C:/work/Foodieupload/");
+
     }
 }

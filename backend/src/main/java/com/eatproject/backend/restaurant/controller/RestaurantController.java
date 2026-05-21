@@ -12,6 +12,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 
 @Log4j2
 @RestController
@@ -39,10 +47,10 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.selectRestaurantListByCategory(category, pageable));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("id") Integer id) {
-        log.info("식당 상세 조회 - ID: {}", id);
-        return ResponseEntity.ok(restaurantService.findById(id));
+    @GetMapping("/{restId}")
+    public ResponseEntity<RestaurantDto> getRestaurantDetail(@PathVariable("restId") Integer restId) {
+        log.info("식당 상세 조회 - ID: {}", restId);
+        return ResponseEntity.ok(restaurantService.findById(restId));
     }
 
     // --- [관리자 전용 기능] ---
@@ -53,19 +61,19 @@ public class RestaurantController {
         return ResponseEntity.status(201).body(restaurantService.saveRestaurant(createDto));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{restId}")
     public ResponseEntity<Void> updateRestaurant(
-            @PathVariable("id") Integer id,
+            @PathVariable("restId") Integer restId,
             @Valid @RequestBody RestaurantUpdateDto updateDto) {
-        log.info("식당 정보 수정 - ID: {}", id);
-        restaurantService.updateRestaurant(id, updateDto);
+        log.info("식당 정보 수정 - ID: {}", restId);
+        restaurantService.updateRestaurant(restId, updateDto);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable("id") Integer id) {
-        log.info("식당 삭제 요청 - ID: {}", id);
-        restaurantService.deleteRestaurant(id);
+    @DeleteMapping("/{restId}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable("restId") Integer restId) {
+        log.info("식당 삭제 요청 - ID: {}", restId);
+        restaurantService.deleteRestaurant(restId);
         return ResponseEntity.noContent().build();
     }
 
@@ -77,4 +85,33 @@ public class RestaurantController {
         restaurantService.updateCategoryInfo(tagId, customTag);
         return ResponseEntity.ok().build();
     }
-}
+    private final String UPLOAD_DIR = "C:/work/Foodieupload/"; // 서버 실제 경로
+
+    @PostMapping("/images/upload")
+    public ResponseEntity<List<String>> uploadImages(@RequestParam("files") List<MultipartFile> files) {
+        List<String> fileUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            try {
+                File dir = new File(UPLOAD_DIR);
+                if (!dir.exists()) dir.mkdirs();
+
+                String originalName = file.getOriginalFilename();
+                String ext = originalName.substring(originalName.lastIndexOf("."));
+                String fileName = UUID.randomUUID().toString() + ext;
+                File dest = new File(UPLOAD_DIR + fileName);
+
+                file.transferTo(dest);
+
+                // 저장된 경로를 리스트에 추가
+                fileUrls.add("/uploads/" + fileName);
+            } catch (IOException e) {
+                log.error("파일 저장 실패", e);
+                return ResponseEntity.internalServerError().build();
+            }
+        }
+        return ResponseEntity.ok(fileUrls);
+    }
+    }

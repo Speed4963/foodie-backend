@@ -15,11 +15,12 @@ import java.util.Optional;
 @Repository
 public interface RestaurantRepository extends JpaRepository<Restaurant, Integer> {
 
-    // 1. 키워드 검색 + 페이징 (성능 최적화 버전)
-    @Query("SELECT r FROM Restaurant r " +
-            "JOIN FETCH r.restaurantTag t " + // ✅ 목록 출력 시 카테고리 정보를 미리 가져옴
+    @Query(value = "SELECT DISTINCT r FROM Restaurant r " +
+            "LEFT JOIN FETCH r.restaurantTag " +
+            "LEFT JOIN FETCH r.images " + // ✅ 목록 조회에도 이미지 추가
             "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) " +
-            "AND r.deletedAt IS NULL")
+            "AND r.deletedAt IS NULL",
+            countQuery = "SELECT COUNT(r) FROM Restaurant r WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) AND r.deletedAt IS NULL")
     Page<Restaurant> selectRestaurantList(@Param("searchKeyword") String searchKeyword, Pageable pageable);
 
     /**
@@ -34,9 +35,11 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
             "WHERE r.restId = :restId AND r.deletedAt IS NULL") // 삭제되지 않은 식당 검증 조건 추가 가능
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
 
-    // 4. 카테고리별 조회
-    @Query("SELECT r FROM Restaurant r " +
-            "JOIN FETCH r.restaurantTag t " + // r.tags -> r.restaurantTag로 변경 및 Fetch Join 추가
+    // RestaurantRepository.java
+    @Query("SELECT DISTINCT r FROM Restaurant r " +
+            "JOIN FETCH r.restaurantTag t " +
+            "LEFT JOIN FETCH r.images " + // ✅ 사진 정보 한 번에 가져오기
+            "LEFT JOIN FETCH r.menus " +  // ✅ 메뉴 정보 한 번에 가져오기
             "WHERE t.category = :category " +
             "AND r.deletedAt IS NULL")
     Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);

@@ -35,9 +35,11 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
             "WHERE r.restId = :restId AND r.deletedAt IS NULL") // 삭제되지 않은 식당 검증 조건 추가 가능
     Optional<Restaurant> findByIdWithAllDetails(@Param("restId") Integer restId);
 
-    // 4. 카테고리별 조회
-    @Query("SELECT r FROM Restaurant r " +
-            "JOIN FETCH r.restaurantTag t " + // r.tags -> r.restaurantTag로 변경 및 Fetch Join 추가
+    // RestaurantRepository.java
+    @Query("SELECT DISTINCT r FROM Restaurant r " +
+            "JOIN FETCH r.restaurantTag t " +
+            "LEFT JOIN FETCH r.images " + // ✅ 사진 정보 한 번에 가져오기
+            "LEFT JOIN FETCH r.menus " +  // ✅ 메뉴 정보 한 번에 가져오기
             "WHERE t.category = :category " +
             "AND r.deletedAt IS NULL")
     Page<Restaurant> findAllByCategory(@Param("category") CategoryType category, Pageable pageable);

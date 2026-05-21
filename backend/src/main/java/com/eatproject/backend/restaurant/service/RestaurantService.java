@@ -76,28 +76,50 @@ public class RestaurantService {
         });
     }
 
-    public Page<RestaurantDto> selectRestaurantListByCategory(String category, Pageable pageable) {
-        if (category == null || category.isBlank() || category.equalsIgnoreCase("ALL")) {
-            return selectRestaurantList(null, pageable);
+        public Page<RestaurantDto> selectRestaurantListByCategory(String category, Pageable pageable) {
+            if (category == null || category.isBlank() || category.equalsIgnoreCase("ALL")) {
+                return selectRestaurantList(null, pageable);
+            }
+            try {
+                CategoryType categoryEnum = CategoryType.valueOf(category.toUpperCase());
+                return restaurantRepository.findAllByCategory(categoryEnum, pageable).map(e -> {
+                    RestaurantDto dto = new RestaurantDto();
+                    dto.setRestId(e.getRestId());
+                    dto.setName(e.getName());
+                    dto.setAddress(e.getAddress());
+                    dto.setAvgPrice(e.getAvgPrice());
+                    dto.setPhone(e.getPhone());
+                    dto.setBusinessHours(e.getBusinessHours());
+                    dto.setClosedDays(e.getClosedDays());
+
+                    if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
+
+                    // ✅ 이미지 리스트 변환 및 세팅
+                    if (e.getImages() != null) {
+                        List<RestaurantImage> validImages = e.getImages().stream()
+                                .filter(i -> i.getDeletedAt() == null)
+                                .collect(Collectors.toList());
+
+                        dto.setImages(IntStream.range(0, validImages.size())
+                                .mapToObj(i -> {
+                                    RestaurantImage img = validImages.get(i);
+                                    return RestaurantDto.ImageResponseDto.builder()
+                                            .imgId(img.getImgId())
+                                            .imgUrl("http://localhost:8080" + img.getImgUrl())
+                                            .category(img.getCategory())
+                                            .isMain(i == 0) // ✅ 0번째 인덱스(첫 번째 사진)만 true
+                                            .build();
+                                })
+                                .collect(Collectors.toList())
+                        );
+                    }
+
+                    return dto;
+                });
+            } catch (IllegalArgumentException e) {
+                return Page.empty(pageable);
+            }
         }
-        try {
-            CategoryType categoryEnum = CategoryType.valueOf(category.toUpperCase());
-            return restaurantRepository.findAllByCategory(categoryEnum, pageable).map(e -> {
-                RestaurantDto dto = new RestaurantDto();
-                dto.setRestId(e.getRestId());
-                dto.setName(e.getName());
-                dto.setAddress(e.getAddress());
-                dto.setAvgPrice(e.getAvgPrice());
-                dto.setPhone(e.getPhone());
-                dto.setBusinessHours(e.getBusinessHours());
-                dto.setClosedDays(e.getClosedDays());
-                if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
-                return dto;
-            });
-        } catch (IllegalArgumentException e) {
-            return Page.empty(pageable);
-        }
-    }
 
     public RestaurantDto findById(Integer id) {
         Restaurant e = restaurantRepository.findByIdWithAllDetails(id)

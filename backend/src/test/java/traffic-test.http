@@ -1,0 +1,8 @@
+### 1. 수동 집계 실행 (오늘 날짜로 분석 실행)
+POST http://localhost:8080/api/admin/traffic-stats/run?date=2026-05-08
+
+### 2. 특정 게시판 결과 조회 (단일 날짜)
+GET http://localhost:8080/api/admin/traffic-stats?boardId=1&date=2026-05-08
+
+### 3. 기간별 합계 조회 (5월 8일 ~ 5월 10일)
+GET http://localhost:8080/api/admin/traffic-stats/period?boardId=1&startDate=2026-05-08&endDate=2026-05-10

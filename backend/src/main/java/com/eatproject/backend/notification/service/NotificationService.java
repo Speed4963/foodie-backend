@@ -147,4 +147,8 @@ public class NotificationService {
         Notification n = repository.findById(id).orElseThrow();
         n.markAsRead();
     }
+
+    public int getUnreadCount(String email) {
+        return repository.countByTargetEmailAndIsReadFalse(email);
+    }
 }

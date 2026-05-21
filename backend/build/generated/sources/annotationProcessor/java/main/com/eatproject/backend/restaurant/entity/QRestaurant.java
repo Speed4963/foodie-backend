@@ -1,0 +1,87 @@
+package com.eatproject.backend.restaurant.entity;
+
+import static com.querydsl.core.types.PathMetadataFactory.*;
+
+import com.querydsl.core.types.dsl.*;
+
+import com.querydsl.core.types.PathMetadata;
+import javax.annotation.processing.Generated;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
+
+
+/**
+ * QRestaurant is a Querydsl query type for Restaurant
+ */
+@Generated("com.querydsl.codegen.DefaultEntitySerializer")
+public class QRestaurant extends EntityPathBase<Restaurant> {
+
+    private static final long serialVersionUID = -1092577903L;
+
+    private static final PathInits INITS = PathInits.DIRECT2;
+
+    public static final QRestaurant restaurant = new QRestaurant("restaurant");
+
+    public final StringPath address = createString("address");
+
+    public final NumberPath<Integer> avgPrice = createNumber("avgPrice", Integer.class);
+
+    public final StringPath businessHours = createString("businessHours");
+
+    public final StringPath closedDays = createString("closedDays");
+
+    public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
+
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = createDateTime("deletedAt", java.time.LocalDateTime.class);
+
+    public final StringPath description = createString("description");
+
+    public final StringPath geohash = createString("geohash");
+
+    public final SetPath<RestaurantImage, QRestaurantImage> images = this.<RestaurantImage, QRestaurantImage>createSet("images", RestaurantImage.class, QRestaurantImage.class, PathInits.DIRECT2);
+
+    public final DateTimePath<java.time.LocalDateTime> lastSyncAt = createDateTime("lastSyncAt", java.time.LocalDateTime.class);
+
+    public final NumberPath<java.math.BigDecimal> lat = createNumber("lat", java.math.BigDecimal.class);
+
+    public final NumberPath<java.math.BigDecimal> lng = createNumber("lng", java.math.BigDecimal.class);
+
+    public final NumberPath<Integer> maxPrice = createNumber("maxPrice", Integer.class);
+
+    public final SetPath<Menu, QMenu> menus = this.<Menu, QMenu>createSet("menus", Menu.class, QMenu.class, PathInits.DIRECT2);
+
+    public final NumberPath<Integer> minPrice = createNumber("minPrice", Integer.class);
+
+    public final StringPath name = createString("name");
+
+    public final StringPath phone = createString("phone");
+
+    public final QRestaurantTag restaurantTag;
+
+    public final NumberPath<Integer> restId = createNumber("restId", Integer.class);
+
+    public final StringPath snsUrl = createString("snsUrl");
+
+    public QRestaurant(String variable) {
+        this(Restaurant.class, forVariable(variable), INITS);
+    }
+
+    public QRestaurant(Path<? extends Restaurant> path) {
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
+    }
+
+    public QRestaurant(PathMetadata metadata) {
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QRestaurant(PathMetadata metadata, PathInits inits) {
+        this(Restaurant.class, metadata, inits);
+    }
+
+    public QRestaurant(Class<? extends Restaurant> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.restaurantTag = inits.isInitialized("restaurantTag") ? new QRestaurantTag(forProperty("restaurantTag")) : null;
+    }
+
+}
+

@@ -11,12 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -101,8 +105,7 @@ public class RestaurantController {
                 if (!dir.exists()) dir.mkdirs();
 
                 String originalName = file.getOriginalFilename();
-                String ext = originalName.substring(originalName.lastIndexOf("."));
-                String fileName = UUID.randomUUID().toString() + ext;
+                String fileName = UUID.randomUUID().toString();
                 File dest = new File(UPLOAD_DIR + fileName);
 
                 file.transferTo(dest);
@@ -115,5 +118,36 @@ public class RestaurantController {
             }
         }
         return ResponseEntity.ok(fileUrls);
+    }
+    @GetMapping("/uploads/{uuid}")
+    public ResponseEntity<byte[]> fileDownload(@PathVariable String uuid) {
+        try {
+            // 1) 지정된 업로드 경로와 uuid(파일명)를 조합하여 최종 파일 경로 생성
+            Path filePath = Paths.get(UPLOAD_DIR, uuid);
+
+            // 파일 존재 여부 검증 (파일이 없으면 404 Not Found 반환)
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // 2) 서버 PC에 있는 이미지를 byte 배열로 읽어오기
+            byte[] file = Files.readAllBytes(filePath);
+
+            // 3) 헤더 설정: 웹 브라우저에 다운로드 창을 띄우도록 첨부파일(attachment) 지정
+            ContentDisposition contentDisposition = ContentDisposition.attachment()
+                    .filename(uuid, StandardCharsets.UTF_8)
+                    .build();
+
+            // 4) 클라이언트(웹 브라우저)로 전송
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM) // 문서종류: 이진파일
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
+                    .body(file);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 파일을 읽는 중 에러가 발생하면 500 에러 반환
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
     }

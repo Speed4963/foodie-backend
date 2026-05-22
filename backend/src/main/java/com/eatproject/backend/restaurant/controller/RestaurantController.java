@@ -7,6 +7,7 @@ import com.eatproject.backend.restaurant.service.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -85,7 +86,8 @@ public class RestaurantController {
         restaurantService.updateCategoryInfo(tagId, customTag);
         return ResponseEntity.ok().build();
     }
-    private final String UPLOAD_DIR = "C:/work/Foodieupload/"; // 서버 실제 경로
+    @Value("${image.upload-dir}")
+    private String UPLOAD_DIR; // 서버 실제 경로
 
     @PostMapping("/images/upload")
     public ResponseEntity<List<String>> uploadImages(@RequestParam("files") List<MultipartFile> files) {

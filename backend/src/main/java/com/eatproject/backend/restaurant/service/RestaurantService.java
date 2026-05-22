@@ -35,7 +35,7 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final RestaurantTagRepository restaurantTagRepository;
     private final NaverMapService naverMapService;
-    @Value("spring.ip")
+    @Value("${spring.ip}")
     private String springip;
 
 

@@ -68,17 +68,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        // 프론트엔드 포트 허용 (3000, 5173 모두 추가)
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://3.38.43.101:5173", "http://localhost:3000", "http://43.203.165.206:8080"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration config = new CorsConfiguration();
+//        // 프론트엔드 포트 허용 (3000, 5173 모두 추가)
+//        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://3.38.43.101:5173", "http://localhost:3000", "http://43.203.165.206:8080"));
+//        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//        config.setAllowedHeaders(Arrays.asList("*"));
+//        config.setAllowCredentials(true);
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//        return source;
+//    }
 }

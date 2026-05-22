@@ -243,11 +243,25 @@ public class RestaurantService {
         restaurant.setSnsUrl(dto.getSnsUrl());
         restaurant.setLastSyncAt(LocalDateTime.now());
 
-        // 외래 키(Tag) 연관 관계 매핑
+        // ❗ 복구 완료: 외래 키(Tag) 연관 관계 매핑
+        if (dto.getTagId() != null) {
+            restaurant.setRestaurantTag(restaurantTagRepository.findById(dto.getTagId()).orElseThrow());
+        }
+
+        // ❗ 복구 완료: 메뉴(Menu) 저장 로직
+        if (dto.getMenus() != null) dto.getMenus().forEach(m -> {
+            Menu menu = new Menu();
+            menu.setPName(m.getPName());
+            menu.setPrice(m.getPrice());
+            menu.setIsRepresentative(m.getIsRepresentative() != null ? m.getIsRepresentative() : false);
+            restaurant.addMenu(menu);
+        });
+
+        // 이미지 저장 로직 (초간단 URL 자동 생성 포함)
         if (dto.getImages() != null) dto.getImages().forEach(i -> {
             RestaurantImage img = new RestaurantImage();
 
-            // ✅ 초간단 로직: /api/restaurants/ 로 시작하지 않으면 강제로 무조건 붙임
+            // /api/restaurants/ 로 시작하지 않으면 강제로 무조건 붙임
             String finalUrl = i.getImgUrl();
             if (finalUrl != null && !finalUrl.startsWith("/api/restaurants/")) {
                 finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
@@ -259,11 +273,11 @@ public class RestaurantService {
             img.setDisplayOrder(i.getDisplayOrder() != null ? i.getDisplayOrder() : 0);
             img.setIsMain(i.getIsMain() != null ? i.getIsMain() : false);
 
-            // saveRestaurant인 경우: restaurant.addImage(img);
-            // updateRestaurant인 경우: r.addImage(img);
+            // ❗ 복구 완료: 주석이 아니라 실제로 추가되도록 수정
+            restaurant.addImage(img);
         });
 
-        // 영속성 컨텍스트에 저장 후 자동 생성된 PK 반환
+        // ❗ 복구 완료: 영속성 컨텍스트에 저장 후 자동 생성된 PK 반환
         return restaurantRepository.save(restaurant).getRestId();
     }
 

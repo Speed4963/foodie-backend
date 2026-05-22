@@ -60,6 +60,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/reservation/current" , "/api/me").authenticated() //  이 주소는 로그인한 사람만!
                 .requestMatchers("/main","/api/member/**").permitAll()                                       // / (첫페이지)는 로그인 없이 모두 허용합니다.
                 .anyRequest().authenticated());                                           // 위의 주소 이외의 주소는 모두 로그인해야 볼 수 있습니다.
+//        임시 테스트용도
+//        http.authorizeHttpRequests(auth -> auth
+//                .anyRequest().permitAll()
+//        );
 
 //      4) 웹토큰 검사 필터 자동 실행
 //        참고) 사용법) http.addFilterBefore(웹토큰필터, id검사필터); // id검사 필터 앞에 웹토큰필터를 넣으시오
@@ -67,19 +71,5 @@ public class SecurityConfig {
         http.addFilterBefore(JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        // 프론트엔드 포트 허용 (3000, 5173 모두 추가)
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://3.38.43.101:5173", "http://localhost:3000"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }

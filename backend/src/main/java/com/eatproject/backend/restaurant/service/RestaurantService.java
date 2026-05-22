@@ -105,7 +105,8 @@ public class RestaurantService {
                                     RestaurantImage img = validImages.get(i);
                                     return RestaurantDto.ImageResponseDto.builder()
                                             .imgId(img.getImgId())
-                                            .imgUrl("http://localhost:8080" + img.getImgUrl())
+                                            .imgUrl("http://43.203.165.206:8080" + img.getImgUrl())
+//                                    리액트 주소: "http://localhost:8080"
                                             .category(img.getCategory())
                                             .isMain(i == 0) // ✅ 0번째 인덱스(첫 번째 사진)만 true
                                             .build();

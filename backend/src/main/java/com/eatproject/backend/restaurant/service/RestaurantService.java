@@ -38,6 +38,8 @@ public class RestaurantService {
     @Value("spring.ip")
     private String springip;
 
+
+
     // --- [조회 기능] ---
 
     public Page<RestaurantDto> selectRestaurantList(String searchKeyword, Pageable pageable) {

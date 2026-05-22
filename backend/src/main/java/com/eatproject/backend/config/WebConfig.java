@@ -21,7 +21,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173") // 리액트 주소
+                .allowedOrigins("http://localhost:5173",
+                                "http://43.203.165.206",          // 프론트엔드가 배포된 주소
+                                "http://43.203.165.206:8080",
+                                "http://43.203.165.206:8080") // 리액트 주소
                 .allowedMethods(
                         HttpMethod.GET.name(),
                         HttpMethod.POST.name(),

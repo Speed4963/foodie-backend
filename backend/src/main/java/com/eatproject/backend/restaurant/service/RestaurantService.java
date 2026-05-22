@@ -13,6 +13,7 @@ import com.eatproject.backend.restaurant.repository.RestaurantTagRepository;
 import com.eatproject.backend.restaurant.service.NaverMapService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final RestaurantTagRepository restaurantTagRepository;
     private final NaverMapService naverMapService;
+    @Value("spring.ip")
+    private String springip;
 
     // --- [조회 기능] ---
 
@@ -63,7 +66,7 @@ public class RestaurantService {
                             RestaurantImage img = validImages.get(i);
                             return RestaurantDto.ImageResponseDto.builder()
                                     .imgId(img.getImgId())
-                                    .imgUrl("http://localhost:8080" + img.getImgUrl())
+                                    .imgUrl(springip + img.getImgUrl())
                                     .category(img.getCategory())
                                     .isMain(i == 0) // ✅ 0번째 인덱스(첫 번째 사진)만 true
                                     .build();
@@ -105,7 +108,7 @@ public class RestaurantService {
                                     RestaurantImage img = validImages.get(i);
                                     return RestaurantDto.ImageResponseDto.builder()
                                             .imgId(img.getImgId())
-                                            .imgUrl("http://43.203.165.206:8080" + img.getImgUrl())
+                                            .imgUrl(springip + img.getImgUrl())
 //                                    리액트 주소: "http://localhost:8080"
                                             .category(img.getCategory())
                                             .isMain(i == 0) // ✅ 0번째 인덱스(첫 번째 사진)만 true
@@ -170,7 +173,7 @@ public class RestaurantService {
                         RestaurantImage img = validImages.get(i);
                         return RestaurantDto.ImageResponseDto.builder()
                                 .imgId(img.getImgId())
-                                .imgUrl("http://localhost:8080" + img.getImgUrl()) // 경로 조합
+                                .imgUrl(springip + img.getImgUrl()) // 경로 조합
                                 .category(img.getCategory())
                                 .isMain(i == 0) // 첫 번째 사진을 메인으로
                                 .build();

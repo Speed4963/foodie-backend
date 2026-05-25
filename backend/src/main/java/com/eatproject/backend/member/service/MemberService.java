@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -95,7 +96,14 @@ public class MemberService {
                         member.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) : "")
                 .build();
     }
-    public Page<Member> getMemberList(Pageable pageable) {
-        return repository.findAll(pageable);
+    public Page<MemberDto> getMemberList(Pageable pageable) {
+        return repository.findAll(pageable).map(member -> MemberDto.builder()
+                .email(member.getEmail())
+                .nickname(member.getNickname())
+                .role(member.getRole())
+                .isBanned(member.getIsBanned())
+                .createdAt(member.getCreatedAt() != null ?
+                        member.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "")
+                .build());
     }
-}
+    }

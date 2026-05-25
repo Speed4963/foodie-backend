@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -41,12 +43,10 @@ public class MemberController {
         service.register(memberDto);
         return ResponseEntity.ok().build();
     }
-
-    private final MemberService memberService;
-
     @GetMapping
-    public ResponseEntity<Page<Member>> getMemberList(Pageable pageable) {
-        return ResponseEntity.ok(memberService.getMemberList(pageable));
+    public ResponseEntity<Page<MemberDto>> getMemberList(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(service.getMemberList(pageable));
     }
 
     @GetMapping("/me")

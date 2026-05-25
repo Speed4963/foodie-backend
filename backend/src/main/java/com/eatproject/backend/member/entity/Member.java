@@ -14,7 +14,7 @@ import org.hibernate.annotations.Where; // 2. 소프트 딜리트 필터링
 @Builder
 @ToString(exclude = "password")
 @EqualsAndHashCode(callSuper = false, of = "email") // 4. 상속 관계 고려
-//@Where(clause = "DELETED_AT IS NULL") // 5. 삭제된 회원은 기본 조회에서 제외
+@Where(clause = "DELETED_AT IS NULL") // 5. 삭제된 회원은 기본 조회에서 제외
 public class Member extends BaseTimeEntity { // 6. BaseTimeEntity 상속
 
     @Id

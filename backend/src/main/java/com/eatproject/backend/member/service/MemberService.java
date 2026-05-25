@@ -6,6 +6,8 @@ import com.eatproject.backend.member.repository.MemberRepository;
 import com.eatproject.backend.common.jwt.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -92,5 +94,8 @@ public class MemberService {
                 .createdAt(member.getCreatedAt() != null ?
                         member.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) : "")
                 .build();
+    }
+    public Page<Member> getMemberList(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 }

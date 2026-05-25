@@ -1,9 +1,12 @@
 package com.eatproject.backend.member.controller;
 
 import com.eatproject.backend.member.dto.MemberDto;
+import com.eatproject.backend.member.entity.Member;
 import com.eatproject.backend.member.service.MemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +40,13 @@ public class MemberController {
     public ResponseEntity<Void> register(@Valid @RequestBody MemberDto memberDto) {
         service.register(memberDto);
         return ResponseEntity.ok().build();
+    }
+
+    private final MemberService memberService;
+
+    @GetMapping
+    public ResponseEntity<Page<Member>> getMemberList(Pageable pageable) {
+        return ResponseEntity.ok(memberService.getMemberList(pageable));
     }
 
     @GetMapping("/me")

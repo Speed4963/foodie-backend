@@ -1,6 +1,8 @@
 package com.eatproject.backend.member.repository;
 
 import com.eatproject.backend.member.entity.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,6 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, String> {
+
+
+
 
     /**
      * 1) 이메일로 회원 정보 조회
@@ -33,4 +38,5 @@ public interface MemberRepository extends JpaRepository<Member, String> {
      * DELETED_AT이 null인 유저만 찾습니다.
      */
     Optional<Member> findByEmailAndDeletedAtIsNull(String email);
+
 }

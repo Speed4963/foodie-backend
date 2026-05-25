@@ -68,4 +68,11 @@ public class MemberController {
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .build();
     }
+    @PatchMapping("/{email}/status")
+    public ResponseEntity<Void> updateStatus(
+            @PathVariable String email,
+            @RequestParam boolean isSuspend) { // true면 정지, false면 복구
+        service.updateMemberStatus(email, isSuspend);
+        return ResponseEntity.noContent().build();
+    }
 }

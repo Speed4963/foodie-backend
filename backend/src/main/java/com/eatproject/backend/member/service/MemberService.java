@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -32,8 +33,10 @@ public class MemberService {
     // (SecurityConfig에서 @Bean으로 등록되어 있어야 합니다.)
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventPublisher eventPublisher;
+
     /**
      * 로그인 로직
+     *
      * @param memberDto 이메일과 비밀번호가 담긴 DTO
      * @return 생성된 JWT 토큰
      */
@@ -96,6 +99,7 @@ public class MemberService {
                         member.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) : "")
                 .build();
     }
+
     public Page<MemberDto> getMemberList(Pageable pageable) {
         return repository.findAll(pageable).map(member -> MemberDto.builder()
                 .email(member.getEmail())
@@ -106,4 +110,20 @@ public class MemberService {
                         member.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "")
                 .build());
     }
+
+    public void updateMemberStatus(String email, boolean isSuspend) {
+        // 1. 정지된 회원도 찾아야 하므로 일반 조회 대신 쿼리 메서드 사용 (필터 무시)
+        Member member = repository.findByEmailIgnoringWhere(email)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
+
+        if (isSuspend) {
+            // 정지 처리: 현재 시간을 넣어 null이 아니게 만듦 (조회 필터에서 제외됨)
+            member.setDeletedAt(LocalDateTime.now());
+            member.setIsBanned(true);
+        } else {
+            // 복구 처리: null로 되돌림 (다시 조회됨)
+            member.setDeletedAt(null);
+            member.setIsBanned(false);
+        }
     }
+}

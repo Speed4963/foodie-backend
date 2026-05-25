@@ -4,6 +4,8 @@ import com.eatproject.backend.member.entity.Member;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -38,4 +40,7 @@ public interface MemberRepository extends JpaRepository<Member, String> {
      * DELETED_AT이 null인 유저만 찾습니다.
      */
     Page<Member> findAllByDeletedAtIsNull(Pageable pageable);
+
+    @Query(value = "SELECT * FROM MEMBERS WHERE EMAIL = :email", nativeQuery = true)
+    Optional<Member> findByEmailIgnoringWhere(@Param("email") String email);
 }

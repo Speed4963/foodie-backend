@@ -59,7 +59,6 @@ public class PostService {
             }
         }
 
-
         SiteConfig config = siteConfigRepository.findById(1)
                 .orElseThrow(() -> new IllegalStateException("시스템 설정이 존재하지 않습니다."));
 
@@ -89,7 +88,8 @@ public class PostService {
                 );
             }
 
-            Post reply = createEntity(requestDto, board, 1);
+            // 💡 수정됨: createEntity 호출 시 writer(Member 객체) 전달
+            Post reply = createEntity(requestDto, writer, board, 1);
             Post savedReply = postRepository.save(reply);
 
             eventPublisher.publishEvent(
@@ -97,7 +97,7 @@ public class PostService {
                             parentThread.getParentId() == null
                                     ? NotificationType.COMMENT_CREATED
                                     : NotificationType.REPLY_CREATED,
-                            requestDto.getWriter(),
+                            writer.getEmail(), // 💡 수정됨: requestDto.getWriter() 대신 writer.getEmail() 사용
                             parentThread.getWriter(),
                             parentThread.getPostId(),
                             parentThread.getBoard().getBoardId(),
@@ -114,18 +114,20 @@ public class PostService {
 
         board.incrementPostCount();
 
-        Post opPost = createEntity(requestDto, board, 0);
+        // 💡 수정됨: createEntity 호출 시 writer(Member 객체) 전달
+        Post opPost = createEntity(requestDto, writer, board, 0);
 
         return new PostResponseDto(postRepository.save(opPost));
     }
 
-    private Post createEntity(PostRequestDto dto, Board board, int depth) {
+    // 💡 핵심 수정됨: 파라미터로 Member writer를 받고, writer.getEmail()을 저장
+    private Post createEntity(PostRequestDto dto, Member writer, Board board, int depth) {
         return Post.builder()
                 .board(board)
                 .parentId(dto.getParentId())
                 .quoteId(dto.getQuoteId())
                 .depth(depth)
-                .writer(dto.getWriter())
+                .writer(writer.getEmail()) // DB 제약조건인 이메일을 정확히 저장
                 .content(dto.getContent())
                 .isAnonymous(dto.getIsAnonymous())
                 .imgUrl(dto.getImgUrl())

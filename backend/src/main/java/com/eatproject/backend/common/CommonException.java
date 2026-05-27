@@ -26,6 +26,7 @@ public class CommonException {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleAllException(Exception e) {
+        e.printStackTrace();
         log.error("서버 내부 오류 발생: ", e);
 
         ApiResponse<Void> response = ApiResponse.<Void>builder()

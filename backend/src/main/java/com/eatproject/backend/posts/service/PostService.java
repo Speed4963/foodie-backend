@@ -131,4 +131,15 @@ public class PostService {
                 .thumbUrl(dto.getThumbUrl())
                 .build();
     }
+
+    public Page<PostResponseDto> getBlogPosts(Pageable pageable) {
+
+        Board blogBoard = boardRepository.findBySlug("blog")
+                .orElseThrow(() -> new IllegalArgumentException("blog board 없음"));
+
+        return postRepository
+                .findAllByBoard_BoardIdAndDepthOrderByBumpAtDesc(
+                        blogBoard.getBoardId(), 0, pageable)
+                .map(PostResponseDto::new);
+    }
 }

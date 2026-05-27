@@ -50,4 +50,11 @@ public class PostController {
         List<PostResponseDto> replies = postService.getRepliesByThread(threadId);
         return ResponseEntity.ok(replies);
     }
+
+    @GetMapping("/blog")
+    public Page<PostResponseDto> getBlog(Pageable pageable) {
+        return postService.getBlogPosts(pageable);
+    }
+
+
 }

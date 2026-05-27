@@ -60,20 +60,8 @@ public class PostService {
         }
 
 
-        SiteConfig config = siteConfigRepository.findAll().stream()
-                .findFirst()
-                .orElseGet(() -> {
-                    // DB에서 못 찾으면 메모리에 기본값 객체 생성
-                    return SiteConfig.builder()
-                            .siteName("EatPick")
-                            .footerInfo("서비스 운영 중")
-                            .maintenanceMode(false)
-                            .alertThreshold(100)
-                            .threadReplyLimit(500)
-                            .boardThreadLimit(1000)
-                            .updatedBy("system")
-                            .build();
-                });
+        SiteConfig config = siteConfigRepository.findById(1)
+                .orElseThrow(() -> new IllegalStateException("시스템 설정이 존재하지 않습니다."));
 
         if (requestDto.getParentId() != null) {
 

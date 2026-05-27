@@ -254,9 +254,12 @@ public class RestaurantService {
 
             String finalUrl = i.getImgUrl();
             if (finalUrl != null) {
-                // 🛠️ URL 중복 조립 방어 (.startsWith -> .contains 변경)
-                if (!finalUrl.contains("/api/restaurants")) {
-                    finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+                // 1. 이미 'http'로 시작하는 절대 경로라면 수정하지 않고 그대로 사용
+                if (!finalUrl.startsWith("http")) {
+                    // 2. 도메인 없이 경로만 있는 경우에만 /api/restaurants 를 붙임
+                    if (!finalUrl.startsWith("/api/restaurants")) {
+                        finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+                    }
                 }
             }
 

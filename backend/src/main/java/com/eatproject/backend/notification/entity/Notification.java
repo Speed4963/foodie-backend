@@ -20,6 +20,8 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
+    private String message;
+
     private Boolean isRead = false;
 
     private Long refPostId;
@@ -32,6 +34,7 @@ public class Notification {
 
     public Notification(String targetEmail,
                         NotificationType type,
+                        String message,
                         Long refPostId,
                         Integer refBoardId,
                         String keyword) {

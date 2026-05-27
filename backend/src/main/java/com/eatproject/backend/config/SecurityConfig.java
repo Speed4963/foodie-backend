@@ -14,11 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +29,6 @@ public class SecurityConfig {
         return new AuthTokenFilter();
     }
 
-    // AuthenticationConfiguration을 사용해 AuthenticationManager를 빈(Bean)으로 등록합니다.
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
@@ -48,21 +42,26 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable());
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() //테스트용 임시 허용
-                .requestMatchers("/api/download/**", "/images/**", "/css/**","/js/**", "/favicon.ico").permitAll() // 이미지등은 모두 허용
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**","/v3/api-docs.yaml","/api/admin/traffic-stats/**").permitAll()
-                .requestMatchers("/api/restaurants/**","/images/upload","/images/**", "/uploads/**").permitAll()
-                .requestMatchers("/api/reservation/current" , "/api/me").authenticated() //  이 주소는 로그인한 사람만!
-                .requestMatchers("/main","/api/member/**").permitAll()                                       // / (첫페이지)는 로그인 없이 모두 허용합니다.
-                .anyRequest().authenticated());                                           // 위의 주소 이외의 주소는 모두 로그인해야 볼 수 있습니다.
-//        임시 테스트용도
-//        http.authorizeHttpRequests(auth -> auth
-//                .anyRequest().permitAll()
-//        );
+                // 1. 사전 검사 (OPTIONS 메소드 허용)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-//      4) 웹토큰 검사 필터 자동 실행
-//        참고) 사용법) http.addFilterBefore(웹토큰필터, id검사필터); // id검사 필터 앞에 웹토큰필터를 넣으시오
-//        용어: 시큐리티: Authentication == UserDetails == principal (사용자계정을 담는 클래스들)
+                // 2. 모두 접근 가능한 경로
+                .requestMatchers("/commu/**", "/main", "/api/member/**").permitAll()
+                .requestMatchers("/api/download/**", "/images/**", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                .requestMatchers("/api/restaurants/**", "/images/upload", "/uploads/**").permitAll()
+
+                // 3. EDITOR 또는 ADMIN만 접근 가능한 경로 (블로그/글쓰기 관련)
+                // 만약 글 작성 API가 /api/posts 라면 여기에도 추가하세요.
+                .requestMatchers("/blog/**").hasAnyRole("EDITOR", "ADMIN")
+
+                // 4. 로그인한 사람만 가능한 경로
+                .requestMatchers("/api/reservation/current", "/api/me").authenticated()
+
+                // 5. 그 외 모든 요청은 로그인 필요
+                .anyRequest().authenticated()
+        );
+
         http.addFilterBefore(JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

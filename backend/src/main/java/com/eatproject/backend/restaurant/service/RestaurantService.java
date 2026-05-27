@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Comparator; // ✅ Comparator 추가
+import java.util.Comparator; // ✅ Comparator 유지
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -66,13 +66,13 @@ public class RestaurantService {
             }
 
             if (e.getImages() != null) {
-                // ✅ 1. 유효 이미지 필터링 후 등록 순서(displayOrder)대로 오름차순 정렬
+                // ✅ 1. 유효 이미지 필터링 후 등록 순서(displayOrder)대로 오름차순 정렬 유지
                 List<RestaurantImage> validImages = e.getImages().stream()
                         .filter(i -> i.getDeletedAt() == null)
                         .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
                         .collect(Collectors.toList());
 
-                // ✅ 2. 정렬된 상태에서 0번째를 대표 이미지(isMain=true)로 지정
+                // ✅ 2. 정렬된 상태에서 0번째를 대표 이미지(isMain=true)로 지정 유지
                 dto.setImages(IntStream.range(0, validImages.size())
                         .mapToObj(i -> {
                             RestaurantImage img = validImages.get(i);
@@ -115,7 +115,7 @@ public class RestaurantService {
                 if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
 
                 if (e.getImages() != null) {
-                    // ✅ 이미지 정렬 추가
+                    // ✅ 이미지 정렬 유지
                     List<RestaurantImage> validImages = e.getImages().stream()
                             .filter(i -> i.getDeletedAt() == null)
                             .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
@@ -171,10 +171,10 @@ public class RestaurantService {
             dto.setCustomTag("#" + e.getRestaurantTag().getCustomTag());
         }
 
-        // ✅ 메뉴 정렬 로직 추가: menuId 오름차순(등록순)
+        // ✅ 메뉴 정렬 로직 유지: menuId 오름차순(등록순)
         dto.setMenus(e.getMenus().stream()
                 .filter(m -> m.getDeletedAt() == null)
-                .sorted(Comparator.comparingLong(Menu::getMenuId)) // ✨ 이 부분 추가됨
+                .sorted(Comparator.comparingLong(Menu::getMenuId))
                 .map(m -> RestaurantDto.MenuResponseDto.builder()
                         .menuId(m.getMenuId())
                         .pName(m.getPName())
@@ -184,7 +184,7 @@ public class RestaurantService {
                 .collect(Collectors.toList()));
 
         if (e.getImages() != null) {
-            // ✅ 이미지 정렬 추가
+            // ✅ 이미지 정렬 유지
             List<RestaurantImage> validImages = e.getImages().stream()
                     .filter(i -> i.getDeletedAt() == null)
                     .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
@@ -235,9 +235,10 @@ public class RestaurantService {
         restaurant.setSnsUrl(dto.getSnsUrl());
         restaurant.setLastSyncAt(LocalDateTime.now());
 
-
+        // 🛠️ 500 에러 방지: 태그 검증 로직 추가
         if (dto.getTagId() != null) {
-            restaurant.setRestaurantTag(restaurantTagRepository.findById(dto.getTagId()).orElseThrow());
+            restaurant.setRestaurantTag(restaurantTagRepository.findById(dto.getTagId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 태그 ID입니다: " + dto.getTagId())));
         }
 
         if (dto.getMenus() != null) dto.getMenus().forEach(m -> {
@@ -252,8 +253,11 @@ public class RestaurantService {
             RestaurantImage img = new RestaurantImage();
 
             String finalUrl = i.getImgUrl();
-            if (finalUrl != null && !finalUrl.startsWith("/api/restaurants/")) {
-                finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+            if (finalUrl != null) {
+                // 🛠️ URL 중복 조립 방어 (.startsWith -> .contains 변경)
+                if (!finalUrl.contains("/api/restaurants")) {
+                    finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+                }
             }
 
             img.setImgUrl(finalUrl);
@@ -261,7 +265,6 @@ public class RestaurantService {
             img.setCategory(i.getCategory() != null ? i.getCategory() : "GENERAL");
             img.setDisplayOrder(i.getDisplayOrder() != null ? i.getDisplayOrder() : 0);
             img.setIsMain(i.getIsMain() != null ? i.getIsMain() : false);
-
 
             restaurant.addImage(img);
         });
@@ -278,7 +281,8 @@ public class RestaurantService {
 
     @Transactional
     public void updateRestaurant(Integer id, RestaurantUpdateDto dto) {
-        Restaurant r = restaurantRepository.findById(id).orElseThrow();
+        Restaurant r = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("수정하려는 식당이 존재하지 않습니다. ID: " + id)); // 🛠️ 예외 메시지 명확화
         r.setName(dto.getName());
         r.setAvgPrice(dto.getAvgPrice());
         r.setMinPrice(dto.getMinPrice());
@@ -304,8 +308,11 @@ public class RestaurantService {
             RestaurantImage img = new RestaurantImage();
 
             String finalUrl = i.getImgUrl();
-            if (finalUrl != null && !finalUrl.startsWith("/api/restaurants/")) {
-                finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+            if (finalUrl != null) {
+                // 🛠️ URL 중복 조립 방어 (.startsWith -> .contains 변경)
+                if (!finalUrl.contains("/api/restaurants")) {
+                    finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+                }
             }
 
             img.setImgUrl(finalUrl);
@@ -331,7 +338,7 @@ public class RestaurantService {
     private List<RestaurantDto.ImageResponseDto> mapImages(List<RestaurantImage> images) {
         if (images == null) return Collections.emptyList();
 
-        // ✅ 정렬 추가
+        // ✅ 정렬 유지
         List<RestaurantImage> validImages = images.stream()
                 .filter(i -> i.getDeletedAt() == null)
                 .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))

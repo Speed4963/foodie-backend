@@ -15,6 +15,7 @@ import com.eatproject.backend.posts.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,10 +47,9 @@ public class PostService {
 
     @Transactional
     public PostResponseDto createPost(PostRequestDto requestDto) {
-
-        Member writer = memberRepository.findById(requestDto.getWriter())
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Member writer = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("가입된 유저만 글을 쓸 수 있습니다."));
-
         Board board = boardRepository.findById(requestDto.getBoardId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시판입니다."));
 
@@ -58,6 +58,7 @@ public class PostService {
                 throw new IllegalStateException("이 공간은 에디터 권한이 있는 사용자만 칼럼을 작성할 수 있습니다.");
             }
         }
+
 
         SiteConfig config = siteConfigRepository.findById(1)
                 .orElseThrow(() -> new IllegalStateException("시스템 설정이 존재하지 않습니다."));

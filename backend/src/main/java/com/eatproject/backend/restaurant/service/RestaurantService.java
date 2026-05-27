@@ -115,7 +115,7 @@ public class RestaurantService {
                 if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
 
                 if (e.getImages() != null) {
-                    // ✅ 정렬 추가
+                    // ✅ 이미지 정렬 추가
                     List<RestaurantImage> validImages = e.getImages().stream()
                             .filter(i -> i.getDeletedAt() == null)
                             .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
@@ -171,8 +171,10 @@ public class RestaurantService {
             dto.setCustomTag("#" + e.getRestaurantTag().getCustomTag());
         }
 
+        // ✅ 메뉴 정렬 로직 추가: menuId 오름차순(등록순)
         dto.setMenus(e.getMenus().stream()
                 .filter(m -> m.getDeletedAt() == null)
+                .sorted(Comparator.comparingLong(Menu::getMenuId)) // ✨ 이 부분 추가됨
                 .map(m -> RestaurantDto.MenuResponseDto.builder()
                         .menuId(m.getMenuId())
                         .pName(m.getPName())
@@ -182,7 +184,7 @@ public class RestaurantService {
                 .collect(Collectors.toList()));
 
         if (e.getImages() != null) {
-            // ✅ 정렬 추가
+            // ✅ 이미지 정렬 추가
             List<RestaurantImage> validImages = e.getImages().stream()
                     .filter(i -> i.getDeletedAt() == null)
                     .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))

@@ -36,3 +36,6 @@ foodie/.idea/modules/Foodie.main.iml
 foodie/.idea/workspace.xml
 >>>>>>> Stashed changes
 foodie/.idea/workspace.xml
+# Gradle
+.gradle/
+build/

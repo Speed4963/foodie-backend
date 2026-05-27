@@ -17,9 +17,10 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
 
     @Query(value = "SELECT DISTINCT r FROM Restaurant r " +
             "LEFT JOIN FETCH r.restaurantTag " +
-            "LEFT JOIN FETCH r.images " + // ✅ 목록 조회에도 이미지 추가
+            "LEFT JOIN FETCH r.images " +
             "WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) " +
             "AND r.deletedAt IS NULL",
+            // ✅ countQuery는 Fetch Join을 제거한 형태여야 페이징이 정확합니다.
             countQuery = "SELECT COUNT(r) FROM Restaurant r WHERE (:searchKeyword IS NULL OR r.name LIKE %:searchKeyword% OR r.address LIKE %:searchKeyword%) AND r.deletedAt IS NULL")
     Page<Restaurant> selectRestaurantList(@Param("searchKeyword") String searchKeyword, Pageable pageable);
 

@@ -56,5 +56,8 @@ public class PostController {
         return postService.getBlogPosts(pageable);
     }
 
-
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponseDto> getPostDetail(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPostDetail(postId));
+    }
 }

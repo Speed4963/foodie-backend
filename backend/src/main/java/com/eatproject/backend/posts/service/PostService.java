@@ -142,4 +142,11 @@ public class PostService {
                         blogBoard.getBoardId(), 0, pageable)
                 .map(PostResponseDto::new);
     }
+
+    public PostResponseDto getPostDetail(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("POST 없음"));
+
+        return new PostResponseDto(post);
+    }
 }

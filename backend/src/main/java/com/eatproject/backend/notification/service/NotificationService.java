@@ -125,6 +125,7 @@ public class NotificationService {
         Notification n = new Notification(
                 targetEmail,
                 type,
+                type.getMessage(),
                 postId,
                 boardId,
                 keyword

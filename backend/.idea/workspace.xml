@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39742050-c43d-4ee3-9d5e-b68eaa62ebf2" name="Changes" comment="" />
+    <list default="true" id="39742050-c43d-4ee3-9d5e-b68eaa62ebf2" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/entity/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/entity/Notification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/entity/NotificationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/entity/NotificationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/service/NotificationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/notification/service/NotificationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/posts/service/PostService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/eatproject/backend/posts/service/PostService.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -70,7 +76,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.BackendApplication.executor": "Run",
-    "git-widget-placeholder": "dy",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",

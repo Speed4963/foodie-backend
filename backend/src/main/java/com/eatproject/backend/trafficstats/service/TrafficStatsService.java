@@ -46,10 +46,6 @@ public class TrafficStatsService {
     @Transactional // 쓰기 작업이 포함되므로 별도의 트랜잭션 설정
     public void generateAndSaveStats(LocalDate targetDate) {
         log.info("=== TrafficStats 집계 시작: {} ===", targetDate);
-
-        // 1. 중복 집계 방지: 해당 날짜에 이미 집계된 기존 데이터가 있다면 삭제 (Delete-then-Insert)
-        trafficStatsRepository.deleteByStatDate(targetDate);
-
         // 2. 집계 시간 범위 설정 (대상 날짜의 00:00:00 ~ 23:59:59)
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(LocalTime.MAX);

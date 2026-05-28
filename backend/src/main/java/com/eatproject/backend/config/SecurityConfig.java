@@ -4,7 +4,9 @@ import com.eatproject.backend.common.jwt.AuthTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,11 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +30,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // JWT 사용 시 비활성화 필수
@@ -40,33 +42,35 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable());
 
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() //테스트용 임시 허용
-                .requestMatchers("/api/download/**", "/images/**", "/css/**","/js/**", "/favicon.ico").permitAll() // 이미지등은 모두 허용
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**","/v3/api-docs.yaml").permitAll()
-                .requestMatchers("/api/restaurants/**").permitAll()
-                .requestMatchers("/api/reservation/current" , "/api/me").authenticated() //  이 주소는 로그인한 사람만!
-                .requestMatchers("/main").permitAll()                                       // / (첫페이지)는 로그인 없이 모두 허용합니다.
-                .anyRequest().authenticated());                                           // 위의 주소 이외의 주소는 모두 로그인해야 볼 수 있습니다.
+                // 1. 사전 검사 (OPTIONS 메소드 허용)
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-//      4) 웹토큰 검사 필터 자동 실행
-//        참고) 사용법) http.addFilterBefore(웹토큰필터, id검사필터); // id검사 필터 앞에 웹토큰필터를 넣으시오
-//        용어: 시큐리티: Authentication == UserDetails == principal (사용자계정을 담는 클래스들)
+                // 2. 모두 접근 가능한 경로
+                .requestMatchers("/commu/**", "/main", "/api/member/**").permitAll()
+                .requestMatchers("/api/download/**", "/images/**", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                .requestMatchers("/api/restaurants/**", "/images/upload", "/uploads/**").permitAll()
+
+                // 3. EDITOR 또는 ADMIN만 접근 가능한 경로 (블로그/글쓰기 관련)
+                .requestMatchers("/blog/**").hasAnyRole("EDITOR", "ADMIN")
+
+                // 3-1. 블로그 리뷰 API (/api/posts)
+                // GET(목록·상세 조회)은 비로그인도 허용, 나머지(작성·수정·삭제·좋아요)는 로그인 필요
+                .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/posts").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/posts/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
+
+                // 4. 로그인한 사람만 가능한 경로
+                .requestMatchers("/api/reservation/current", "/api/me").authenticated()
+
+                // 5. 그 외 모든 요청은 로그인 필요
+                .anyRequest().authenticated()
+        );
+
         http.addFilterBefore(JwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        // 프론트엔드 포트 허용 (3000, 5173 모두 추가)
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://3.38.43.101:5173", "http://localhost:3000"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }

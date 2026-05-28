@@ -152,4 +152,22 @@
 
             return new PostResponseDto(post);
         }
+        @Transactional
+        public void deletePost(Long postId) {
+            // 1. 게시글 조회
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+
+            // 2. 권한 확인 로직 (기존과 동일)
+            String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    .stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!post.getWriter().equals(currentEmail) && !isAdmin) {
+                throw new IllegalStateException("본인의 글만 삭제할 수 있습니다.");
+            }
+
+            // 4. 게시글(본인) 삭제
+            postRepository.delete(post);
+        }
     }

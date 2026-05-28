@@ -30,25 +30,22 @@ public class TrafficStatsController {
     }
 
 
-//      특정 날짜 통계 조회 (TrafficStatsDto 사용)
-//      GET /api/admin/traffic-stats?boardId=1&date=2026-05-08
-
-    @GetMapping
-    public ResponseEntity<List<TrafficStatsDto>> getStats(
-            @RequestParam Integer boardId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(trafficStatsService.getStatsForAdmin(boardId, date));
+    /**
+     * 1. 전체 통계 조회
+     * URL: GET /api/admin/traffic-stats/all
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<TrafficStatsDto>> getAllStats() {
+        return ResponseEntity.ok(trafficStatsService.getAllStats());
     }
 
-
-//      기간별 통계 조회 (TrafficStatsResponseDto 사용)
-//      GET /api/admin/traffic-stats/period?boardId=1&startDate=2026-05-08&endDate=2026-05-10
-
-    @GetMapping("/period")
-    public ResponseEntity<List<TrafficStatsResponseDto>> getPeriodStats(
-            @RequestParam Integer boardId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(trafficStatsService.getStatsByPeriod(boardId, startDate, endDate));
+    /**
+     * 2. 날짜별 전체 통계 조회
+     * URL: GET /api/admin/traffic-stats/date?date=2026-05-28
+     */
+    @GetMapping("/date")
+    public ResponseEntity<List<TrafficStatsDto>> getAllStatsByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(trafficStatsService.getAllStatsByDate(date));
     }
 }

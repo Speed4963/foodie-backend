@@ -5,11 +5,11 @@ import com.eatproject.backend.board.repository.BoardRepository;
 import com.eatproject.backend.posts.entity.Post;
 import com.eatproject.backend.posts.repository.PostRepository;
 import com.eatproject.backend.trafficstats.dto.TrafficStatsDto;
-import com.eatproject.backend.trafficstats.dto.TrafficStatsResponseDto;
 import com.eatproject.backend.trafficstats.entity.TrafficStats;
 import com.eatproject.backend.trafficstats.repository.TrafficStatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.StringReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -33,6 +32,7 @@ import java.util.Set;
 @Transactional(readOnly = true) // 기본적으로 읽기 전용 트랜잭션 설정
 public class TrafficStatsService {
 
+    @Autowired
     private final TrafficStatsRepository trafficStatsRepository;
     private final BoardRepository boardRepository;
     private final PostRepository postRepository;
@@ -43,32 +43,33 @@ public class TrafficStatsService {
 //      @param targetDate 집계 대상 날짜
 
 
-    @Transactional // 쓰기 작업이 포함되므로 별도의 트랜잭션 설정
+    @Transactional
     public void generateAndSaveStats(LocalDate targetDate) {
         log.info("=== TrafficStats 집계 시작: {} ===", targetDate);
-        // 2. 집계 시간 범위 설정 (대상 날짜의 00:00:00 ~ 23:59:59)
+
+        // [핵심 추가] 기존 데이터 삭제 (유니크 키 충돌 방지)
+        trafficStatsRepository.deleteByStatDate(targetDate);
+
+        // 2. 집계 시간 범위 설정
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(LocalTime.MAX);
 
-        // 3. 시스템 내의 모든 게시판 목록을 가져옴
+        // 3. 모든 게시판 목록 조회
         List<Board> boards = boardRepository.findAll();
 
         for (Board board : boards) {
-            // 4. 해당 게시판에서 지정된 시간 범위 내에 작성된 모든 게시글 조회
+            // 4. 시간 범위 내 게시글 조회
             List<Post> posts = postRepository.findAllByBoard_BoardIdAndCreatedAtBetween(
                     board.getBoardId(), start, end);
 
-            // 게시글이 없는 게시판은 건너뜀
             if (posts.isEmpty()) continue;
 
-            // 5. 게시글 리스트로부터 키워드와 빈도수를 추출 (Map 형태)
+            // 5. 키워드 추출
             Map<String, Integer> keywordMap = extractKeywordsFromPosts(posts);
 
-
-
-            // 6. 유의미한 데이터 필터링 및 엔티티 변환
+            // 6. 엔티티 변환
             List<TrafficStats> statsList = keywordMap.entrySet().stream()
-                    .filter(entry -> entry.getValue() >= 1) // 언급 횟수가 1회 이상인 키워드만 선택
+                    .filter(entry -> entry.getValue() >= 1)
                     .map(entry -> TrafficStats.builder()
                             .board(board)
                             .keyword(entry.getKey())
@@ -77,7 +78,7 @@ public class TrafficStatsService {
                             .build())
                     .toList();
 
-            // 7. 필터링된 키워드 통계 데이터를 DB에 일괄 저장
+            // 7. 일괄 저장
             if (!statsList.isEmpty()) {
                 trafficStatsRepository.saveAll(statsList);
             }

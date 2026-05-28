@@ -51,16 +51,12 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/restaurants/**", "/images/upload", "/uploads/**").permitAll()
 
-                // 3. EDITOR 또는 ADMIN만 접근 가능한 경로 (블로그/글쓰기 관련)
-                .requestMatchers("/blog/**").hasAnyRole("EDITOR", "ADMIN")
-
-                // 3-1. 블로그 리뷰 API (/api/posts)
-                // GET(목록·상세 조회)은 비로그인도 허용, 나머지(작성·수정·삭제·좋아요)는 로그인 필요
+                // 3. 블로그 리뷰 API — GET은 누구나, 나머지는 로그인 필요
                 .requestMatchers(HttpMethod.GET, "/api/posts", "/api/posts/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/posts").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/posts/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
+                .requestMatchers("/api/posts/**").authenticated()
+
+                // 3-1. EDITOR 또는 ADMIN만 접근 가능한 경로
+                .requestMatchers("/blog/**").hasAnyRole("EDITOR", "ADMIN")
 
                 // 4. 로그인한 사람만 가능한 경로
                 .requestMatchers("/api/reservation/current", "/api/me").authenticated()

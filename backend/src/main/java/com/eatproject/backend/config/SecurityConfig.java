@@ -47,7 +47,7 @@ public class SecurityConfig {
 
                 // 2. 모두 접근 가능한 경로
                 .requestMatchers("/commu/**", "/main", "/api/member/**").permitAll()
-                .requestMatchers("/api/download/**", "/images/**", "/css/**", "/js/**", "/favicon.ico").permitAll()
+                .requestMatchers("/api/download/**", "/images/**", "/css/**", "/js/**", "/favicon.ico","/api/admin/traffic-stats/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
                 .requestMatchers("/api/restaurants/**", "/images/upload", "/uploads/**").permitAll()
 

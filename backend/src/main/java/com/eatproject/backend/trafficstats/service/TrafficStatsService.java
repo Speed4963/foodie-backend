@@ -64,6 +64,8 @@ public class TrafficStatsService {
             // 5. 게시글 리스트로부터 키워드와 빈도수를 추출 (Map 형태)
             Map<String, Integer> keywordMap = extractKeywordsFromPosts(posts);
 
+
+
             // 6. 유의미한 데이터 필터링 및 엔티티 변환
             List<TrafficStats> statsList = keywordMap.entrySet().stream()
                     .filter(entry -> entry.getValue() >= 1) // 언급 횟수가 1회 이상인 키워드만 선택
@@ -84,29 +86,29 @@ public class TrafficStatsService {
     }
 
 
-//      [관리자용 단일 날짜 조회]
-//      특정 게시판의 특정 날짜 키워드 통계를 가져옵니다.
-
-    public List<TrafficStatsDto> getStatsForAdmin(Integer boardId, LocalDate statDate) {
-        return trafficStatsRepository.findAllByBoardIdAndStatDate(boardId, statDate).stream()
+    // 1. 전체 데이터 조회
+    public List<TrafficStatsDto> getAllStats() {
+        return trafficStatsRepository.findAll().stream()
                 .map(ts -> TrafficStatsDto.builder()
                         .boardName(ts.getBoard().getName())
                         .keyword(ts.getKeyword())
                         .mentionCount(ts.getMentionCount().longValue())
-                        .statDate(statDate)
+                        .statDate(ts.getStatDate())
                         .build())
                 .toList();
     }
 
-    /**
-     * [관리자용 기간별 조회]
-     * 특정 기간(시작일~종료일) 동안의 키워드 빈도 합계를 조회합니다.
-     */
-    // 기간 조회 시 (TrafficStatsResponseDto 사용)
-    public List<TrafficStatsResponseDto> getStatsByPeriod(Integer boardId, LocalDate startDate, LocalDate endDate) {
-        return trafficStatsRepository.findStatsByPeriod(boardId, startDate, endDate);
+    // 2. 날짜별 전체 게시판 통계 조회
+    public List<TrafficStatsDto> getAllStatsByDate(LocalDate date) {
+        return trafficStatsRepository.findAllByStatDate(date).stream()
+                .map(ts -> TrafficStatsDto.builder()
+                        .boardName(ts.getBoard().getName())
+                        .keyword(ts.getKeyword())
+                        .mentionCount(ts.getMentionCount().longValue())
+                        .statDate(date)
+                        .build())
+                .toList();
     }
-
 
 //      [내부 로직] 게시글 본문에서 단어를 분리하고 빈도수를 측정합니다.
 //     @param posts 분석할 게시글 리스트

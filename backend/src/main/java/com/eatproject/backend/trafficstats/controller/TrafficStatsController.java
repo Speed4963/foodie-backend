@@ -4,6 +4,7 @@ import com.eatproject.backend.trafficstats.dto.TrafficStatsDto;
 import com.eatproject.backend.trafficstats.dto.TrafficStatsResponseDto;
 import com.eatproject.backend.trafficstats.service.TrafficStatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,25 +31,13 @@ public class TrafficStatsController {
     }
 
 
-//      특정 날짜 통계 조회 (TrafficStatsDto 사용)
-//      GET /api/admin/traffic-stats?boardId=1&date=2026-05-08
-
-    @GetMapping
-    public ResponseEntity<List<TrafficStatsDto>> getStats(
-            @RequestParam Integer boardId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(trafficStatsService.getStatsForAdmin(boardId, date));
+    @GetMapping("/all")
+    public ResponseEntity<Page<TrafficStatsDto>> getAllStats(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(trafficStatsService.findAll(page, size));
     }
 
-
-//      기간별 통계 조회 (TrafficStatsResponseDto 사용)
-//      GET /api/admin/traffic-stats/period?boardId=1&startDate=2026-05-08&endDate=2026-05-10
-
-    @GetMapping("/period")
-    public ResponseEntity<List<TrafficStatsResponseDto>> getPeriodStats(
-            @RequestParam Integer boardId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        return ResponseEntity.ok(trafficStatsService.getStatsByPeriod(boardId, startDate, endDate));
+    @GetMapping("/date")
+    public ResponseEntity<Page<TrafficStatsDto>> getAllStatsByDate(@RequestParam LocalDate date, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(trafficStatsService.getAllStatsByDatePaged(date, page, size));
     }
 }

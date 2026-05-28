@@ -45,7 +45,7 @@
                     .collect(Collectors.toList());
         }
 
-        @Transactional
+
         public PostResponseDto createPost(PostRequestDto requestDto) {
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Member writer = memberRepository.findByEmail(email)
@@ -152,4 +152,41 @@
 
             return new PostResponseDto(post);
         }
+
+        @Transactional
+        public void deletePost(Long postId) {
+            // 1. 게시글 조회
+            Post post = postRepository.findById(postId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+
+            // 2. 권한 확인
+            String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+            boolean isAdmin = SecurityContextHolder.getContext().getAuthentication().getAuthorities()
+                    .stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            if (!post.getWriter().equals(currentEmail) && !isAdmin) {
+                throw new IllegalStateException("본인의 글만 삭제할 수 있습니다.");
+            }
+
+            // 3. [핵심] 원문 삭제 시 답글까지 삭제하는 로직
+            // parentId가 현재 postId인 모든 답글을 먼저 찾아 삭제합니다.
+            if (post.getDepth() == 0) {
+                List<Post> replies = postRepository.findAllByParentIdOrderByCreatedAtAsc(postId);
+                if (!replies.isEmpty()) {
+                    postRepository.deleteAll(replies);
+                }
+            }
+
+            // 4. 본글 삭제
+            postRepository.delete(post);
+        }
+//        좋아요
+@Transactional
+public PostResponseDto toggleLike(Long postId, boolean isIncrease) {
+    Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+
+    post.updateLikeCount(isIncrease);
+    return new PostResponseDto(postRepository.save(post));
+}
     }

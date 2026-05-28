@@ -60,4 +60,15 @@ public class PostController {
     public ResponseEntity<PostResponseDto> getPostDetail(@PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostDetail(postId));
     }
+    @DeleteMapping("/delete/{postId}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        postService.deletePost(postId);
+        return ResponseEntity.noContent().build();
+    }
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<PostResponseDto> toggleLike(
+            @PathVariable Long postId,
+            @RequestParam boolean isIncrease) {
+        return ResponseEntity.ok(postService.toggleLike(postId, isIncrease));
+    }
 }

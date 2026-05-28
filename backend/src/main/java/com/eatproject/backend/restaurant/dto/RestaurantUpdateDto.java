@@ -8,8 +8,9 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString
 public class RestaurantUpdateDto {
-    // 식당 본체 정보 수정
     private String name;
     private String address;
     private BigDecimal lat;
@@ -18,11 +19,22 @@ public class RestaurantUpdateDto {
     private Integer minPrice;
     private Integer maxPrice;
 
+    // 🌟 [신규 추가 필드]
+    private String description;
+    private String phone;
+    private String businessHours;
+    private String closedDays;
+    private String snsUrl;
+
     private List<MenuUpdateDto> menus;
     private List<ImageUpdateDto> images;
-    private List<TagUpdateDto> customTags;
+
+    private Integer tagId;
 
     @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class MenuUpdateDto {
         private Integer menuId;
         private String pName;
@@ -31,6 +43,9 @@ public class RestaurantUpdateDto {
     }
 
     @Getter @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class ImageUpdateDto {
         private Long imgId;
         private String imgUrl;
@@ -38,12 +53,5 @@ public class RestaurantUpdateDto {
         private String category;
         private Boolean isMain;
         private Integer displayOrder;
-    }
-
-    @Getter @Setter
-    public static class TagUpdateDto {
-        private Integer tagId;
-        private String category;
-        private String customTag;
     }
 }

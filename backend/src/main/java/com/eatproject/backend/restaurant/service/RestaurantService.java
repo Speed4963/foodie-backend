@@ -4,14 +4,16 @@ import com.eatproject.backend.common.CategoryType;
 import com.eatproject.backend.restaurant.dto.RestaurantCreateDto;
 import com.eatproject.backend.restaurant.dto.RestaurantDto;
 import com.eatproject.backend.restaurant.dto.RestaurantUpdateDto;
-import com.eatproject.backend.restaurant.entity.RestaurantTag;
 import com.eatproject.backend.restaurant.entity.Menu;
 import com.eatproject.backend.restaurant.entity.Restaurant;
 import com.eatproject.backend.restaurant.entity.RestaurantImage;
+import com.eatproject.backend.restaurant.entity.RestaurantTag;
 import com.eatproject.backend.restaurant.repository.RestaurantRepository;
-
+import com.eatproject.backend.restaurant.repository.RestaurantTagRepository;
+import com.eatproject.backend.restaurant.service.NaverMapService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,323 +21,342 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator; // ✅ Comparator 유지
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Log4j2
 @Service
 @RequiredArgsConstructor
+// 클래스 레벨에 readOnly = true를 적용하여 단순 조회 메서드의 성능을 최적화합니다.
+// 데이터 변경이 일어나는 메서드에는 별도로 @Transactional을 붙여 덮어씌웁니다.
 @Transactional(readOnly = true)
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
-
+    private final RestaurantTagRepository restaurantTagRepository;
     private final NaverMapService naverMapService;
 
+    // application.properties(또는 yml)에서 서버 IP 주소를 주입받아 이미지 URL 생성 시 사용합니다.
+    @Value("${spring.ip}")
+    private String springip;
+
+    // ==========================================
     // --- [조회 기능] ---
+    // ==========================================
 
     /**
-     * 1. 전체 목록 조회 (키워드 검색 + 페이징)
+     * 전체 식당 목록 조회 (검색어 포함 및 페이징 처리)
      */
     public Page<RestaurantDto> selectRestaurantList(String searchKeyword, Pageable pageable) {
-        Page<Restaurant> restaurants = restaurantRepository.selectRestaurantList(searchKeyword, pageable);
-        return restaurants.map(this::toDto);
+        return restaurantRepository.selectRestaurantList(searchKeyword, pageable).map(e -> {
+            RestaurantDto dto = new RestaurantDto();
+            dto.setRestId(e.getRestId());
+            dto.setName(e.getName());
+            dto.setAddress(e.getAddress());
+            dto.setAvgPrice(e.getAvgPrice());
+            dto.setPhone(e.getPhone());
+            dto.setBusinessHours(e.getBusinessHours());
+            dto.setClosedDays(e.getClosedDays());
+
+            if (e.getRestaurantTag() != null) {
+                dto.setCategory(e.getRestaurantTag().getCategory().name());
+            }
+
+            if (e.getImages() != null) {
+                // ✅ 1. 유효 이미지 필터링 후 등록 순서(displayOrder)대로 오름차순 정렬 유지
+                List<RestaurantImage> validImages = e.getImages().stream()
+                        .filter(i -> i.getDeletedAt() == null)
+                        .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
+                        .collect(Collectors.toList());
+
+                // ✅ 2. 정렬된 상태에서 0번째를 대표 이미지(isMain=true)로 지정 유지
+                dto.setImages(IntStream.range(0, validImages.size())
+                        .mapToObj(i -> {
+                            RestaurantImage img = validImages.get(i);
+                            return RestaurantDto.ImageResponseDto.builder()
+                                    .imgId(img.getImgId())
+                                    .imgUrl(springip + img.getImgUrl())
+                                    .category(img.getCategory())
+                                    .isMain(i == 0)
+                                    .build();
+                        })
+                        .collect(Collectors.toList())
+                );
+            }
+
+            return dto;
+        });
     }
 
     /**
-     * 2. 카테고리별 목록 조회 (페이징)
-     */
-    /**
-     * 2. 카테고리별 목록 조회 (전체 보기 지원)
+     * 특정 카테고리별 식당 목록 조회 (페이징 처리)
      */
     public Page<RestaurantDto> selectRestaurantListByCategory(String category, Pageable pageable) {
-        // 1. 카테고리 값이 없거나 "ALL"인 경우 -> 전체 목록 조회로 토스!
         if (category == null || category.isBlank() || category.equalsIgnoreCase("ALL")) {
-            log.info("카테고리 미지정 또는 ALL 요청: 전체 목록을 조회합니다.");
-            return selectRestaurantList(null, pageable); // 기존 전체 조회 메서드 활용
+            return selectRestaurantList(null, pageable);
         }
 
-        // 2. 특정 카테고리가 지정된 경우 -> ENUM 변환 후 필터링
         try {
             CategoryType categoryEnum = CategoryType.valueOf(category.toUpperCase());
-            Page<Restaurant> restaurants = restaurantRepository.findAllByCategory(categoryEnum, pageable);
 
-            return restaurants.map(this::toDto);
+            return restaurantRepository.findAllByCategory(categoryEnum, pageable).map(e -> {
+                RestaurantDto dto = new RestaurantDto();
+                dto.setRestId(e.getRestId());
+                dto.setName(e.getName());
+                dto.setAddress(e.getAddress());
+                dto.setAvgPrice(e.getAvgPrice());
+                dto.setPhone(e.getPhone());
+                dto.setBusinessHours(e.getBusinessHours());
+                dto.setClosedDays(e.getClosedDays());
+
+                if (e.getRestaurantTag() != null) dto.setCategory(e.getRestaurantTag().getCategory().name());
+
+                if (e.getImages() != null) {
+                    // ✅ 이미지 정렬 유지
+                    List<RestaurantImage> validImages = e.getImages().stream()
+                            .filter(i -> i.getDeletedAt() == null)
+                            .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
+                            .collect(Collectors.toList());
+
+                    dto.setImages(IntStream.range(0, validImages.size())
+                            .mapToObj(i -> {
+                                RestaurantImage img = validImages.get(i);
+                                return RestaurantDto.ImageResponseDto.builder()
+                                        .imgId(img.getImgId())
+                                        .imgUrl(springip + img.getImgUrl())
+                                        .category(img.getCategory())
+                                        .isMain(i == 0)
+                                        .build();
+                            })
+                            .collect(Collectors.toList())
+                    );
+                }
+
+                return dto;
+            });
         } catch (IllegalArgumentException e) {
-            // 잘못된 카테고리 값이 들어온 경우 에러 로그를 남기고 빈 페이지 반환
-            log.error("잘못된 카테고리 요청입니다: {}", category);
             return Page.empty(pageable);
         }
     }
 
     /**
-     * 3. 단일 상세 조회 (ID 기준 + 모든 정보 Fetch Join)
+     * 식당 상세 정보 단건 조회
      */
     public RestaurantDto findById(Integer id) {
-        Restaurant restaurant = restaurantRepository.findByIdWithAllDetails(id)
+        Restaurant e = restaurantRepository.findByIdWithAllDetails(id)
                 .orElseThrow(() -> new RuntimeException("해당 식당 정보를 찾을 수 없습니다."));
-        return toFullDto(restaurant);
+
+        RestaurantDto dto = new RestaurantDto();
+        dto.setRestId(e.getRestId());
+        dto.setName(e.getName());
+        dto.setAddress(e.getAddress());
+        dto.setLat(e.getLat());
+        dto.setLng(e.getLng());
+        dto.setGeohash(e.getGeohash());
+        dto.setAvgPrice(e.getAvgPrice());
+        dto.setMinPrice(e.getMinPrice());
+        dto.setMaxPrice(e.getMaxPrice());
+        dto.setDescription(e.getDescription());
+        dto.setPhone(e.getPhone());
+        dto.setBusinessHours(e.getBusinessHours());
+        dto.setClosedDays(e.getClosedDays());
+        dto.setSnsUrl(e.getSnsUrl());
+        dto.setCreatedAt(e.getCreatedAt());
+
+        if (e.getRestaurantTag() != null) {
+            dto.setCategory(e.getRestaurantTag().getCategory().name());
+            dto.setCustomTag("#" + e.getRestaurantTag().getCustomTag());
+        }
+
+        // ✅ 메뉴 정렬 로직 유지: menuId 오름차순(등록순)
+        dto.setMenus(e.getMenus().stream()
+                .filter(m -> m.getDeletedAt() == null)
+                .sorted(Comparator.comparingLong(Menu::getMenuId))
+                .map(m -> RestaurantDto.MenuResponseDto.builder()
+                        .menuId(m.getMenuId())
+                        .pName(m.getPName())
+                        .price(m.getPrice())
+                        .isRepresentative(m.getIsRepresentative())
+                        .build())
+                .collect(Collectors.toList()));
+
+        if (e.getImages() != null) {
+            // ✅ 이미지 정렬 유지
+            List<RestaurantImage> validImages = e.getImages().stream()
+                    .filter(i -> i.getDeletedAt() == null)
+                    .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
+                    .collect(Collectors.toList());
+
+            dto.setImages(IntStream.range(0, validImages.size())
+                    .mapToObj(i -> {
+                        RestaurantImage img = validImages.get(i);
+                        return RestaurantDto.ImageResponseDto.builder()
+                                .imgId(img.getImgId())
+                                .imgUrl(springip + img.getImgUrl())
+                                .category(img.getCategory())
+                                .isMain(i == 0)
+                                .build();
+                    })
+                    .collect(Collectors.toList())
+            );
+        }
+
+        return dto;
     }
 
+    // ==========================================
+    // --- [등록 / 수정 / 삭제] ---
+    // ==========================================
 
-    // --- [등록 / 수정 / 삭제 기능] ---
-
-    /**
-     * 4. 식당 정보 등록 (Create)
-     */
     @Transactional
     public Integer saveRestaurant(RestaurantCreateDto dto) {
         Restaurant restaurant = new Restaurant();
         restaurant.setName(dto.getName());
         restaurant.setAddress(dto.getAddress());
-        if (dto.getAddress() != null && !dto.getAddress().isBlank()) {
-            NaverMapService.Coordinate coord = naverMapService.getCoordinate(dto.getAddress());
-            if (coord != null) {
-                restaurant.setLat(BigDecimal.valueOf(coord.lat()));
-                restaurant.setLng(BigDecimal.valueOf(coord.lng()));
-                log.info("주소 변환 성공: {} -> {}, {}", dto.getAddress(), coord.lat(), coord.lng());
 
-                // 필요 시 Geohash 계산 로직 추가 가능
-                // restaurant.setGeohash(calculateGeohash(coord.lat(), coord.lng()));
-            } else {
-                log.warn("주소 변환 실패: {}", dto.getAddress());
-            }
-        } else {
-            // 주소가 없을 경우 DTO의 좌표를 우선 사용
-            restaurant.setLat(dto.getLat());
-            restaurant.setLng(dto.getLng());
-            restaurant.setGeohash(dto.getGeohash());
-        }
+        NaverMapService.Coordinate coord = (dto.getAddress() != null && !dto.getAddress().isBlank())
+                ? naverMapService.getCoordinate(dto.getAddress())
+                : null;
+
+        restaurant.setLat(coord != null ? BigDecimal.valueOf(coord.lat()) : (dto.getLat() != null ? dto.getLat() : BigDecimal.ZERO));
+        restaurant.setLng(coord != null ? BigDecimal.valueOf(coord.lng()) : (dto.getLng() != null ? dto.getLng() : BigDecimal.ZERO));
+        restaurant.setGeohash(dto.getGeohash() != null ? dto.getGeohash() : "0000000000");
+
         restaurant.setAvgPrice(dto.getAvgPrice());
         restaurant.setMinPrice(dto.getMinPrice());
         restaurant.setMaxPrice(dto.getMaxPrice());
+        restaurant.setDescription(dto.getDescription());
+        restaurant.setPhone(dto.getPhone());
+        restaurant.setBusinessHours(dto.getBusinessHours());
+        restaurant.setClosedDays(dto.getClosedDays());
+        restaurant.setSnsUrl(dto.getSnsUrl());
         restaurant.setLastSyncAt(LocalDateTime.now());
 
-        // 메뉴 등록
-        if (dto.getMenus() != null) {
-            boolean anyRepProvided = dto.getMenus().stream()
-                    .anyMatch(m -> m.getIsRepresentative() != null && m.getIsRepresentative());
+        // 🛠️ 500 에러 방지: 태그 검증 로직 추가
+        if (dto.getTagId() != null) {
+            restaurant.setRestaurantTag(restaurantTagRepository.findById(dto.getTagId())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리 태그 ID입니다: " + dto.getTagId())));
+        }
 
-            for (int i = 0; i < dto.getMenus().size(); i++) {
-                var menuDto = dto.getMenus().get(i);
-                Menu menu = new Menu();
-                menu.setPName(menuDto.getPName());
-                menu.setPrice(menuDto.getPrice());
+        if (dto.getMenus() != null) dto.getMenus().forEach(m -> {
+            Menu menu = new Menu();
+            menu.setPName(m.getPName());
+            menu.setPrice(m.getPrice());
+            menu.setIsRepresentative(m.getIsRepresentative() != null ? m.getIsRepresentative() : false);
+            restaurant.addMenu(menu);
+        });
 
-                if (menuDto.getIsRepresentative() != null && menuDto.getIsRepresentative()) {
-                    menu.setIsRepresentative(true);
-                } else if (i == 0 && !anyRepProvided) {
-                    menu.setIsRepresentative(true);
-                } else {
-                    menu.setIsRepresentative(false);
+        if (dto.getImages() != null) dto.getImages().forEach(i -> {
+            RestaurantImage img = new RestaurantImage();
+
+            String finalUrl = i.getImgUrl();
+            if (finalUrl != null) {
+                // 1. 이미 'http'로 시작하는 절대 경로라면 수정하지 않고 그대로 사용
+                if (!finalUrl.startsWith("http")) {
+                    // 2. 도메인 없이 경로만 있는 경우에만 /api/restaurants 를 붙임
+                    if (!finalUrl.startsWith("/api/restaurants")) {
+                        finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
+                    }
                 }
-                restaurant.addMenu(menu);
             }
-        }
 
-        // 이미지 등록
-        if (dto.getImages() != null) {
-            boolean anyThumbProvided = dto.getImages().stream()
-                    .anyMatch(img -> img.getThumbUrl() != null && !img.getThumbUrl().isEmpty());
+            img.setImgUrl(finalUrl);
+            img.setThumbUrl(finalUrl);
+            img.setCategory(i.getCategory() != null ? i.getCategory() : "GENERAL");
+            img.setDisplayOrder(i.getDisplayOrder() != null ? i.getDisplayOrder() : 0);
+            img.setIsMain(i.getIsMain() != null ? i.getIsMain() : false);
 
-            for (int i = 0; i < dto.getImages().size(); i++) {
-                var imgDto = dto.getImages().get(i);
-                RestaurantImage image = new RestaurantImage();
-                image.setImgUrl(imgDto.getImgUrl());
-                image.setDisplayOrder(i);
-                image.setCategory(imgDto.getCategory());
-
-                if (imgDto.getThumbUrl() != null && !imgDto.getThumbUrl().isEmpty()) {
-                    image.setThumbUrl(imgDto.getThumbUrl());
-                } else if (i == 0 && !anyThumbProvided) {
-                    image.setThumbUrl(imgDto.getImgUrl());
-                } else {
-                    image.setThumbUrl(null);
-                }
-                restaurant.addImage(image);
-            }
-        }
-
-        // 태그 등록 (TagCreateDto 구조 반영)
-        if (dto.getCustomTags() != null) {
-            dto.getCustomTags().forEach(tagDto -> {
-                RestaurantTag tag = new RestaurantTag();
-                tag.setCategory(CategoryType.valueOf(tagDto.getCategory().toUpperCase()));
-                tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
-                restaurant.addRestaurantTag(tag);
-            });
-        }
+            restaurant.addImage(img);
+        });
 
         return restaurantRepository.save(restaurant).getRestId();
     }
 
+    @Transactional
+    public void updateCategoryInfo(Integer tagId, String newCustomTag) {
+        RestaurantTag tag = restaurantTagRepository.findById(tagId)
+                .orElseThrow(() -> new RuntimeException("해당 카테고리 태그가 존재하지 않습니다."));
+        tag.setCustomTag(newCustomTag.replace("#", "").trim());
+    }
 
-    /**
-     * 5. 식당 정보 수정 (Update)
-     */
     @Transactional
     public void updateRestaurant(Integer id, RestaurantUpdateDto dto) {
-        Restaurant restaurant = restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("수정할 식당 정보가 없습니다."));
-        // 4. 주소가 변경되었다면 좌표도 갱신
-        if (dto.getAddress() != null && !dto.getAddress().equals(restaurant.getAddress())) {
-            NaverMapService.Coordinate coord = naverMapService.getCoordinate(dto.getAddress());
-            if (coord != null) {
-                restaurant.setLat(BigDecimal.valueOf(coord.lat()));
-                restaurant.setLng(BigDecimal.valueOf(coord.lng()));
-            }
-            restaurant.setAddress(dto.getAddress());
-        }
+        Restaurant r = restaurantRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("수정하려는 식당이 존재하지 않습니다. ID: " + id)); // 🛠️ 예외 메시지 명확화
+        r.setName(dto.getName());
+        r.setAvgPrice(dto.getAvgPrice());
+        r.setMinPrice(dto.getMinPrice());
+        r.setMaxPrice(dto.getMaxPrice());
+        r.setDescription(dto.getDescription());
+        r.setPhone(dto.getPhone());
+        r.setBusinessHours(dto.getBusinessHours());
+        r.setClosedDays(dto.getClosedDays());
+        r.setSnsUrl(dto.getSnsUrl());
+        r.setLastSyncAt(LocalDateTime.now());
 
-        restaurant.setName(dto.getName());
-        restaurant.setLat(dto.getLat());
-        restaurant.setLng(dto.getLng());
-        restaurant.setAvgPrice(dto.getAvgPrice());
-        restaurant.setMinPrice(dto.getMinPrice());
-        restaurant.setMaxPrice(dto.getMaxPrice());
-        restaurant.setLastSyncAt(LocalDateTime.now());
+        r.getMenus().clear();
+        if (dto.getMenus() != null) dto.getMenus().forEach(m -> {
+            Menu menu = new Menu();
+            menu.setPName(m.getPName());
+            menu.setPrice(m.getPrice());
+            menu.setIsRepresentative(m.getIsRepresentative() != null ? m.getIsRepresentative() : false);
+            r.addMenu(menu);
+        });
 
-        // 메뉴 수정
-        if (dto.getMenus() != null) {
-            restaurant.getMenus().clear();
-            boolean anyRepProvided = dto.getMenus().stream()
-                    .anyMatch(m -> m.getIsRepresentative() != null && m.getIsRepresentative());
+        r.getImages().clear();
+        if (dto.getImages() != null) dto.getImages().forEach(i -> {
+            RestaurantImage img = new RestaurantImage();
 
-            for (int i = 0; i < dto.getMenus().size(); i++) {
-                var menuDto = dto.getMenus().get(i);
-                Menu menu = new Menu();
-                menu.setPName(menuDto.getPName());
-                menu.setPrice(menuDto.getPrice());
-
-                if (menuDto.getIsRepresentative() != null && menuDto.getIsRepresentative()) {
-                    menu.setIsRepresentative(true);
-                } else if (i == 0 && !anyRepProvided) {
-                    menu.setIsRepresentative(true);
-                } else {
-                    menu.setIsRepresentative(false);
+            String finalUrl = i.getImgUrl();
+            if (finalUrl != null) {
+                // 🛠️ URL 중복 조립 방어 (.startsWith -> .contains 변경)
+                if (!finalUrl.contains("/api/restaurants")) {
+                    finalUrl = "/api/restaurants" + (finalUrl.startsWith("/") ? "" : "/") + finalUrl;
                 }
-                restaurant.addMenu(menu);
             }
-        }
 
-        // 이미지 수정
-        if (dto.getImages() != null) {
-            restaurant.getImages().clear();
-            boolean anyThumbProvided = dto.getImages().stream()
-                    .anyMatch(img -> img.getThumbUrl() != null && !img.getThumbUrl().isEmpty());
-
-            for (int i = 0; i < dto.getImages().size(); i++) {
-                var imgDto = dto.getImages().get(i);
-                RestaurantImage image = new RestaurantImage();
-                image.setImgUrl(imgDto.getImgUrl());
-                image.setDisplayOrder(i);
-                image.setCategory(imgDto.getCategory());
-
-                if (imgDto.getThumbUrl() != null && !imgDto.getThumbUrl().isEmpty()) {
-                    image.setThumbUrl(imgDto.getThumbUrl());
-                } else if (i == 0 && !anyThumbProvided) {
-                    image.setThumbUrl(imgDto.getImgUrl());
-                } else {
-                    image.setThumbUrl(null);
-                }
-                restaurant.addImage(image);
-            }
-        }
-
-        // 태그 수정 (getTags -> getRestaurantTags 수정)
-        if (dto.getCustomTags() != null) {
-            restaurant.getTags().clear();
-            dto.getCustomTags().forEach(tagDto -> {
-                RestaurantTag tag = new RestaurantTag();
-                tag.setCategory(CategoryType.valueOf(tagDto.getCategory().toUpperCase()));
-                tag.setCustomTag(tagDto.getCustomTag().replace("#", "").trim()); // setTagName -> setCustomTag 수정
-                restaurant.addRestaurantTag(tag);
-            });
-        }
+            img.setImgUrl(finalUrl);
+            img.setThumbUrl(finalUrl);
+            img.setCategory(i.getCategory() != null ? i.getCategory() : "GENERAL");
+            img.setDisplayOrder(i.getDisplayOrder() != null ? i.getDisplayOrder() : 0);
+            img.setIsMain(i.getIsMain() != null ? i.getIsMain() : false);
+            r.addImage(img);
+        });
     }
 
-    /**
-     * 6. 식당 삭제 (Soft Delete)
-     */
     @Transactional
     public void deleteRestaurant(Integer id) {
-        Restaurant restaurant = restaurantRepository.findByIdWithAllDetails(id)
-                .orElseThrow(() -> new RuntimeException("삭제할 식당이 없습니다."));
-
-        LocalDateTime now = LocalDateTime.now();
-        restaurant.setDeletedAt(now);
-
-        if (restaurant.getMenus() != null) {
-            restaurant.getMenus().forEach(menu -> menu.setDeletedAt(now));
-        }
-
-        if (restaurant.getImages() != null) {
-            restaurant.getImages().forEach(image -> image.setDeletedAt(now));
-        }
-
-        // 2) 태그는 DB에 deleted_at이 없으므로 실제로 데이터 삭제 (Hard Delete)
-        if (restaurant.getTags() != null) {
-            restaurant.getTags().clear(); // 바구니를 비우면 DB에서 즉시 삭제됩니다.
-        }
+        restaurantRepository.findByIdWithAllDetails(id)
+                .orElseThrow()
+                .setDeletedAt(LocalDateTime.now());
     }
 
+    // ==========================================
+    // --- [내부 헬퍼 메서드] ---
+    // ==========================================
 
-    // --- [공통 변환 메서드] ---
+    private List<RestaurantDto.ImageResponseDto> mapImages(List<RestaurantImage> images) {
+        if (images == null) return Collections.emptyList();
 
-    private RestaurantDto toDto(Restaurant entity) {
-        RestaurantDto dto = new RestaurantDto();
-        dto.setRestId(entity.getRestId());
-        dto.setName(entity.getName());
-        dto.setAddress(entity.getAddress());
-        dto.setAvgPrice(entity.getAvgPrice());
-        return dto;
-    }
-
-    private RestaurantDto toFullDto(Restaurant entity) {
-        RestaurantDto dto = toDto(entity);
-        dto.setAddress(entity.getAddress());
-        dto.setLat(entity.getLat());
-        dto.setLng(entity.getLng());
-        dto.setGeohash(entity.getGeohash());
-        dto.setMinPrice(entity.getMinPrice());
-        dto.setMaxPrice(entity.getMaxPrice());
-        dto.setCreatedAt(entity.getCreatedAt());
-
-        // 메뉴 변환
-        dto.setMenus(entity.getMenus().stream()
-                .filter(m -> m.getDeletedAt() == null)
-                .map(m -> {
-                    RestaurantDto.MenuResponseDto mDto = new RestaurantDto.MenuResponseDto();
-                    mDto.setMenuId(m.getMenuId());
-                    mDto.setPName(m.getPName());
-                    mDto.setPrice(m.getPrice());
-                    mDto.setIsRepresentative(m.getIsRepresentative());
-                    return mDto;
-                }).collect(Collectors.toList()));
-
-        // 이미지 변환
-        dto.setImages(entity.getImages().stream()
+        // ✅ 정렬 유지
+        List<RestaurantImage> validImages = images.stream()
                 .filter(i -> i.getDeletedAt() == null)
-                .map(i -> {
-                    RestaurantDto.ImageResponseDto iDto = new RestaurantDto.ImageResponseDto();
-                    iDto.setImgId(i.getImgId());
-                    iDto.setImgUrl(i.getImgUrl());
-                    iDto.setThumbUrl(i.getThumbUrl());
-                    iDto.setCategory(i.getCategory());
-                    return iDto;
-                }).collect(Collectors.toList()));
+                .sorted(Comparator.comparingInt(RestaurantImage::getDisplayOrder))
+                .collect(Collectors.toList());
 
-        // 태그 조회 변환 (t.getTagName -> t.getCustomTag 수정)
-        if (entity.getTags() != null) {
-            dto.setTags(entity.getTags().stream()
-                    .map(t -> {
-                        RestaurantDto.TagResponseDto tagDto = new RestaurantDto.TagResponseDto();
-                        tagDto.setCategory(t.getCategory());
-                        tagDto.setCustomTag("#" + t.getCustomTag());
-                        return tagDto;
-                    })
-                    .collect(Collectors.toList()));
-        }
-
-        return dto;
+        return IntStream.range(0, validImages.size())
+                .mapToObj(i -> {
+                    RestaurantImage img = validImages.get(i);
+                    return RestaurantDto.ImageResponseDto.builder()
+                            .imgId(img.getImgId())
+                            .imgUrl(img.getImgUrl())
+                            .category(img.getCategory())
+                            .isMain(i == 0)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

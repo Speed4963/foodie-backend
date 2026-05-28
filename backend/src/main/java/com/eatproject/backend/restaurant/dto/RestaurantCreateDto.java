@@ -1,5 +1,6 @@
 package com.eatproject.backend.restaurant.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
@@ -8,9 +9,10 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@ToString
 public class RestaurantCreateDto {
     private String name;
-
     private String address;
     private BigDecimal lat;
     private BigDecimal lng;
@@ -19,29 +21,52 @@ public class RestaurantCreateDto {
     private Integer minPrice;
     private Integer maxPrice;
 
+    // 🌟 [신규 추가 필드]
+    private String description;
+    private String phone;
+    private String businessHours;
+    private String closedDays;
+    private String snsUrl;
+
     private List<MenuCreateDto> menus;
     private List<ImageCreateDto> images;
-    private List<TagCreateDto> customTags;
 
-    @Getter @Setter
+    private Integer tagId;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class MenuCreateDto {
+        @JsonProperty("pName") // 👈 JSON의 pName을 이 필드에 매핑
         private String pName;
+
+        @JsonProperty("price")
         private Integer price;
+
+        @JsonProperty("isRepresentative")
         private Boolean isRepresentative;
     }
 
-    @Getter @Setter
-    public static class ImageCreateDto {
-        private String imgUrl;
-        private String thumbUrl;
-        private String category;
-        private Boolean isMain;
-        private Integer displayOrder;
-    }
+        @Getter @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @Builder
+        public static class ImageCreateDto {
+            @JsonProperty("imgUrl")
+            private String imgUrl;
 
-    @Getter @Setter
-    public static class TagCreateDto {
-        private String category;
-        private String customTag;
-    }
+            @JsonProperty("thumbUrl")
+            private String thumbUrl;
+
+            @JsonProperty("category")
+            private String category;
+
+            @JsonProperty("isMain")
+            private Boolean isMain;
+
+            @JsonProperty("displayOrder")
+            private Integer displayOrder;
+        }
 }

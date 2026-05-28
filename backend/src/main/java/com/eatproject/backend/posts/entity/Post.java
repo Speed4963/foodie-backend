@@ -101,4 +101,12 @@ public class Post extends BaseTimeEntity {
         this.replyCount++;
         this.bumpAt = LocalDateTime.now();
     }
+//    좋아요
+    public void updateLikeCount(boolean isLiked) {
+        if (isLiked) {
+            this.likeCount++;
+        } else {
+            this.likeCount = Math.max(0, this.likeCount - 1);
+        }
+    }
 }

@@ -1,13 +1,19 @@
 package com.eatproject.backend.restaurant.entity;
 
 
+import com.eatproject.backend.restaurant.dto.RestaurantDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.github.davidmoten.geo.GeoHash; // 지오해쉬
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "RESTAURANTS")
@@ -21,7 +27,7 @@ import com.github.davidmoten.geo.GeoHash; // 지오해쉬
         sequenceName = "RESTAURANT_SEQ",
         allocationSize = 50
 )
-@ToString(exclude = {"menus", "images", "tags"})
+@ToString(exclude = {"menus", "images", "restaurantTag"})
 public class Restaurant {
 
     @Id
@@ -29,10 +35,12 @@ public class Restaurant {
     @Column(name = "REST_ID")
     private Integer restId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "TAG_ID") // DB의 TAG_ID 컬럼(FK)과 연결
+    private RestaurantTag restaurantTag;
+
     @Column(name = "NAME", length = 200, nullable = false)
     private String name;
-
-
 
     @Column(name = "ADDRESS", length = 255)
     private String address;
@@ -57,6 +65,22 @@ public class Restaurant {
     @Column(name = "MAX_PRICE")
     private Integer maxPrice;
 
+    // 🌟 [신규 추가 필드]
+    @Column(name = "DESCRIPTION", length = 1000)
+    private String description;
+
+    @Column(name = "PHONE", length = 20)
+    private String phone;
+
+    @Column(name = "BUSINESS_HOURS", length = 255)
+    private String businessHours;
+
+    @Column(name = "CLOSED_DAYS", length = 255)
+    private String closedDays;
+
+    @Column(name = "SNS_URL", length = 255)
+    private String snsUrl;
+
     @Column(name = "LAST_SYNC_AT", nullable = false)
     @Builder.Default
     private LocalDateTime lastSyncAt = LocalDateTime.now();
@@ -69,21 +93,15 @@ public class Restaurant {
     private LocalDateTime deletedAt;
 
     // --- [연관 관계 설정] ---
-
-    // 1. 메뉴 (Soft Delete 적용을 위해 Cascade 설정)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     @Builder.Default
-    private List<Menu> menus = new ArrayList<>();
+    private Set<Menu> menus = new HashSet<>();
 
-    // 2. 이미지 (Soft Delete 적용을 위해 Cascade 설정)
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     @Builder.Default
-    private List<RestaurantImage> images = new ArrayList<>();
-
-    // 3. 태그 (사용자 확인에 따라 이름은 tags, 메서드는 addRestaurantTag 사용)
-    @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<RestaurantTag> tags = new ArrayList<>();
+    private Set<RestaurantImage> images = new HashSet<>();
 
 
     // --- [편의 메서드: 양방향 관계를 위해 필수] ---
@@ -98,17 +116,61 @@ public class Restaurant {
         image.setRestaurant(this);
     }
 
-    public void addRestaurantTag(RestaurantTag tag) {
-        this.tags.add(tag);
-        tag.setRestaurant(this);
+    // [수정] 이제 Tag는 List가 아니므로 편의 메서드 대신 setter를 사용하거나 아래와 같이 작성합니다.
+    public void setCategoryTag(RestaurantTag tag) {
+        this.restaurantTag = tag;
+        // 필요 시 부모 쪽 리스트에도 추가 (양방향인 경우)
+        if (!tag.getRestaurants().contains(this)) {
+            tag.getRestaurants().add(this);
+        }
     }
+
     @PrePersist
-    @PreUpdate // 수정 시에도 위치가 바뀌면 갱신되도록 설정
+    @PreUpdate
     public void generateGeohash() {
         if (this.lat != null && this.lng != null) {
-            // 위도, 경도를 기반으로 Geohash 생성 (보통 7~9자리면 동네 단위 검색에 충분합니다)
-            // precision 10은 사용자님의 DB 컬럼 크기(20) 안에도 넉넉히 들어갑니다.
             this.geohash = GeoHash.encodeHash(this.lat.doubleValue(), this.lng.doubleValue(), 10);
         }
+    }
+    // Restaurant.java 내부
+    public RestaurantDto toFullDto() {
+        return RestaurantDto.builder()
+                .restId(this.restId)
+                .name(this.name)
+                .address(this.address)
+                .lat(this.lat)
+                .lng(this.lng)
+                .geohash(this.geohash)
+                .avgPrice(this.avgPrice)
+                .minPrice(this.minPrice)
+                .maxPrice(this.maxPrice)
+                .description(this.description)
+                .phone(this.phone)
+                .businessHours(this.businessHours)
+                .closedDays(this.closedDays)
+                .snsUrl(this.snsUrl)
+                .createdAt(this.createdAt)
+                .category(this.restaurantTag != null ? this.restaurantTag.getCategory().name() : null)
+                .customTag(this.restaurantTag != null ? "#" + this.restaurantTag.getCustomTag() : null)
+                // 메뉴 매핑
+                .menus(this.menus.stream()
+                        .filter(m -> m.getDeletedAt() == null)
+                        .map(m -> RestaurantDto.MenuResponseDto.builder()
+                                .menuId(m.getMenuId())
+                                .pName(m.getPName())
+                                .price(m.getPrice())
+                                .isRepresentative(m.getIsRepresentative())
+                                .build()).collect(Collectors.toList()))
+                // 이미지 매핑
+                .images(this.images.stream()
+                        .filter(i -> i.getDeletedAt() == null)
+                        .map(i -> RestaurantDto.ImageResponseDto.builder()
+                                .imgId(i.getImgId())
+                                .imgUrl(i.getImgUrl())
+                                .thumbUrl(i.getThumbUrl())
+                                .category(i.getCategory())
+                                .isMain(i.getIsMain())
+                                .build()).collect(Collectors.toList()))
+                .build();
     }
 }

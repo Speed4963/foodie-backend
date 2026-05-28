@@ -21,7 +21,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173") // 리액트 주소
+                .allowedOrigins("http://localhost:5173",
+                                "http://43.203.165.206") // 리액트 주소
                 .allowedMethods(
                         HttpMethod.GET.name(),
                         HttpMethod.POST.name(),
@@ -31,6 +32,7 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .allowCredentials(true)
                 .maxAge(3600);
+
     }
 
     // 2. 정적 리소스(이미지) 핸들러 설정 (추가)
@@ -40,5 +42,8 @@ public class WebConfig implements WebMvcConfigurer {
         // 서버의 실제 uploadDir 폴더 안의 파일을 찾아줌
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:" + uploadDir + "/");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:///C:/work/Foodieupload/");
+
     }
 }

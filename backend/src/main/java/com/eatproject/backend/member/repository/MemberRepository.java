@@ -1,19 +1,26 @@
 package com.eatproject.backend.member.repository;
 
 import com.eatproject.backend.member.entity.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+/**
+ * 1) 이메일로 회원 정보 조회
+ * PK가 이메일이므로 기본 제공되는 findById(String email)와 동일하게 동작하지만,
+ * 명시적인 네이밍을 위해 추가할 수 있습니다.
+ */
 
 @Repository
 public interface MemberRepository extends JpaRepository<Member, String> {
 
-    /**
-     * 1) 이메일로 회원 정보 조회
-     * PK가 이메일이므로 기본 제공되는 findById(String email)와 동일하게 동작하지만,
-     * 명시적인 네이밍을 위해 추가할 수 있습니다.
-     */
+
+
+
     Optional<Member> findByEmail(String email);
 
     /**
@@ -32,5 +39,8 @@ public interface MemberRepository extends JpaRepository<Member, String> {
      * 4) 탈퇴하지 않은 회원 조회 (Soft Delete 대응)
      * DELETED_AT이 null인 유저만 찾습니다.
      */
-    Optional<Member> findByEmailAndDeletedAtIsNull(String email);
+    Page<Member> findAllByDeletedAtIsNull(Pageable pageable);
+
+    @Query(value = "SELECT * FROM MEMBERS WHERE EMAIL = :email", nativeQuery = true)
+    Optional<Member> findByEmailIgnoringWhere(@Param("email") String email);
 }

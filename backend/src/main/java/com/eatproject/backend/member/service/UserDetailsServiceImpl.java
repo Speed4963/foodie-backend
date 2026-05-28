@@ -1,5 +1,6 @@
 package com.eatproject.backend.member.service;
 
+import com.eatproject.backend.member.dto.SecurityUserDto;
 import com.eatproject.backend.member.entity.Member;
 import com.eatproject.backend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +22,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         Member member = repository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-        // 차단된 유저인 경우 예외 발생
         if (Boolean.TRUE.equals(member.getIsBanned())) {
             throw new DisabledException("활동이 제한된 계정입니다.");
         }
 
-        return new User(
-                member.getEmail(),
-                member.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + member.getRole()))
+        // 권한 설정 (ROLE_ 접두사 추가)
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + member.getRole().name());
+
+        // [수정 포인트] User가 아닌 SecurityUserDto를 생성하여 반환.
+        return new SecurityUserDto(
+                member.getEmail(),      // Username
+                member.getPassword(),   // Password
+                Collections.singletonList(authority), // Authorities
+                member.getNickname()    // carNumber 자리에 일단 닉네임을 전달 (또는 "N/A")
         );
     }
 }

@@ -20,7 +20,7 @@ public interface TrafficStatsRepository extends JpaRepository<TrafficStats, Long
 
     // 전체 조회 페이징 (기존 기본 메서드 오버라이딩)
     Page<TrafficStats> findAll(Pageable pageable);
-    
-    void deleteByStatDate(@Param("date") LocalDate date);
+
+    void deleteByStatDate(LocalDate statDate);
 }
 

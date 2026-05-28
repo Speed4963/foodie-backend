@@ -16,12 +16,12 @@ import java.util.List;
 public interface TrafficStatsRepository extends JpaRepository<TrafficStats, Long> {
 
     // 2. 배치 재실행 시 중복 방지를 위한 삭제
-    @Modifying(clearAutomatically = true)
+
     @Query("DELETE FROM TrafficStats ts WHERE ts.statDate = :date")
     void deleteByStatDate(@Param("date") LocalDate date);
 
     // 2. 배치 재실행 시 중복 방지를 위한 삭제
-    @Modifying(clearAutomatically = true)
+
     // 🌟 1단계: 날짜별 조회 쿼리에 Pageable과 Page 적용
     @Query("SELECT ts FROM TrafficStats ts WHERE ts.statDate = :statDate")
     Page<TrafficStats> findAllByStatDate(@Param("statDate") LocalDate statDate, Pageable pageable);

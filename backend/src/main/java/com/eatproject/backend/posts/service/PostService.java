@@ -45,7 +45,7 @@
                     .collect(Collectors.toList());
         }
 
-        @Transactional
+
         public PostResponseDto createPost(PostRequestDto requestDto) {
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             Member writer = memberRepository.findByEmail(email)
@@ -152,7 +152,7 @@
 
             return new PostResponseDto(post);
         }
-        @Transactional
+
         public void deletePost(Long postId) {
             // 1. 게시글 조회
             Post post = postRepository.findById(postId)
@@ -170,4 +170,13 @@
             // 4. 게시글(본인) 삭제
             postRepository.delete(post);
         }
+//        좋아요
+@Transactional
+public PostResponseDto toggleLike(Long postId, boolean isIncrease) {
+    Post post = postRepository.findById(postId)
+            .orElseThrow(() -> new IllegalArgumentException("게시글이 없습니다."));
+
+    post.updateLikeCount(isIncrease);
+    return new PostResponseDto(postRepository.save(post));
+}
     }

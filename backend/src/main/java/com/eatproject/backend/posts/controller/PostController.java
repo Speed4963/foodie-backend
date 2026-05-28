@@ -65,4 +65,10 @@ public class PostController {
         postService.deletePost(postId);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<PostResponseDto> toggleLike(
+            @PathVariable Long postId,
+            @RequestParam boolean isIncrease) {
+        return ResponseEntity.ok(postService.toggleLike(postId, isIncrease));
+    }
 }

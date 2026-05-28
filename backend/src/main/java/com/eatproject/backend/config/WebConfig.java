@@ -10,6 +10,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("${spring.react.ip}")
+    private String reactIp;
+
     // CommonUtil에서 사용하던 파일 업로드 경로와 동일해야 합니다.
     @Value("${image.upload-dir}")
     private String uploadDir;

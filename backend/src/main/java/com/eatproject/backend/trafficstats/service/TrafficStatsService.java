@@ -10,6 +10,10 @@ import com.eatproject.backend.trafficstats.entity.TrafficStats;
 import com.eatproject.backend.trafficstats.repository.TrafficStatsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,28 +90,38 @@ public class TrafficStatsService {
     }
 
 
-    // 1. 전체 데이터 조회
-    public List<TrafficStatsDto> getAllStats() {
-        return trafficStatsRepository.findAll().stream()
-                .map(ts -> TrafficStatsDto.builder()
-                        .boardName(ts.getBoard().getName())
-                        .keyword(ts.getKeyword())
-                        .mentionCount(ts.getMentionCount().longValue())
-                        .statDate(ts.getStatDate())
-                        .build())
-                .toList();
+    // 1. 전체 통계 페이징 조회 (규격 통일)
+    public Page<TrafficStatsDto> findAll(int page, int size) {
+        // MENTION_COUNT(언급 횟수)가 높은 순으로 정렬 조건 생성
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "mentionCount"));
+
+        // 리포지토리에서 Page 객체로 데이터 전체 조회
+        Page<TrafficStats> statsPage = trafficStatsRepository.findAll(pageable);
+
+        // 람다식으로 간단하게 DTO Page로 맵핑 변환
+        return statsPage.map(ts -> TrafficStatsDto.builder()
+                .boardName(ts.getBoard() != null ? ts.getBoard().getName() : "기타")
+                .keyword(ts.getKeyword())
+                .mentionCount(ts.getMentionCount() != null ? ts.getMentionCount().longValue() : 0L)
+                .statDate(ts.getStatDate())
+                .build());
     }
 
-    // 2. 날짜별 전체 게시판 통계 조회
-    public List<TrafficStatsDto> getAllStatsByDate(LocalDate date) {
-        return trafficStatsRepository.findAllByStatDate(date).stream()
-                .map(ts -> TrafficStatsDto.builder()
-                        .boardName(ts.getBoard().getName())
-                        .keyword(ts.getKeyword())
-                        .mentionCount(ts.getMentionCount().longValue())
-                        .statDate(date)
-                        .build())
-                .toList();
+    // 🌟 2단계: 날짜별 통계를 Page 구조로 응답하는 서비스 메서드
+    public Page<TrafficStatsDto> getAllStatsByDatePaged(LocalDate date, int page, int size) {
+        // MENTION_COUNT(언급 횟수)가 높은 순으로 정렬 조건 생성
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "mentionCount"));
+
+        // 리포지토리에서 Page 객체로 데이터 꺼내기
+        Page<TrafficStats> statsPage = trafficStatsRepository.findAllByStatDate(date, pageable);
+
+        // 람다식으로 간단하게 DTO Page로 맵핑 변환
+        return statsPage.map(ts -> TrafficStatsDto.builder()
+                .boardName(ts.getBoard() != null ? ts.getBoard().getName() : "기타")
+                .keyword(ts.getKeyword())
+                .mentionCount(ts.getMentionCount() != null ? ts.getMentionCount().longValue() : 0L)
+                .statDate(ts.getStatDate())
+                .build());
     }
 
 //      [내부 로직] 게시글 본문에서 단어를 분리하고 빈도수를 측정합니다.

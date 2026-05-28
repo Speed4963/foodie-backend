@@ -4,6 +4,7 @@ import com.eatproject.backend.trafficstats.dto.TrafficStatsDto;
 import com.eatproject.backend.trafficstats.dto.TrafficStatsResponseDto;
 import com.eatproject.backend.trafficstats.service.TrafficStatsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,22 +31,13 @@ public class TrafficStatsController {
     }
 
 
-    /**
-     * 1. 전체 통계 조회
-     * URL: GET /api/admin/traffic-stats/all
-     */
     @GetMapping("/all")
-    public ResponseEntity<List<TrafficStatsDto>> getAllStats() {
-        return ResponseEntity.ok(trafficStatsService.getAllStats());
+    public ResponseEntity<Page<TrafficStatsDto>> getAllStats(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(trafficStatsService.findAll(page, size));
     }
 
-    /**
-     * 2. 날짜별 전체 통계 조회
-     * URL: GET /api/admin/traffic-stats/date?date=2026-05-28
-     */
     @GetMapping("/date")
-    public ResponseEntity<List<TrafficStatsDto>> getAllStatsByDate(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(trafficStatsService.getAllStatsByDate(date));
+    public ResponseEntity<Page<TrafficStatsDto>> getAllStatsByDate(@RequestParam LocalDate date, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(trafficStatsService.getAllStatsByDatePaged(date, page, size));
     }
 }

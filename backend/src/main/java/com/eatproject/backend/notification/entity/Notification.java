@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
 @Table(name = "NOTIFICATIONS")
+@Getter
 @NoArgsConstructor
 public class Notification {
 
@@ -20,8 +20,6 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     private NotificationType type;
-
-//    private String message;
 
     private Boolean isRead = false;
 

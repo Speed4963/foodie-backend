@@ -22,7 +22,7 @@ public class NotificationController {
     }
 
     // 읽음 처리
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id}/read")
     public void read(@PathVariable Long id) {
         service.read(id);
     }

@@ -5,13 +5,22 @@ import com.eatproject.backend.blog.dto.BlogPostResponseDto;
 import com.eatproject.backend.blog.service.BlogPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * ──────────────────────────────────────────────────────────────
@@ -30,9 +39,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
+@Log4j2
 public class BlogPostController {
 
     private final BlogPostService blogPostService;
+
+    @Value("${image.upload-dir}")
+    private String UPLOAD_DIR;
 
     // ── 헬퍼: SecurityContext에서 현재 사용자 ID 추출 ──────────────
     private static String callerId(UserDetails userDetails) {
@@ -127,5 +140,64 @@ public class BlogPostController {
 
         return ResponseEntity.ok(
                 blogPostService.toggleLike(id, callerId(userDetails)));
+    }
+
+    /**
+     * POST /api/posts/images/upload
+     * 블로그 게시글용 이미지 업로드
+     * 응답: ["http://서버주소/api/posts/uploads/파일명", ...]
+     */
+    @PostMapping("/images/upload")
+    public ResponseEntity<List<String>> uploadImages(
+            @RequestParam("files") List<MultipartFile> files) {
+
+        List<String> fileUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            try {
+                File dir = new File(UPLOAD_DIR);
+                if (!dir.exists()) dir.mkdirs();
+
+                String fileName = UUID.randomUUID().toString();
+                File dest = new File(UPLOAD_DIR + fileName);
+                file.transferTo(dest);
+
+                fileUrls.add("/uploads/" + fileName);
+            } catch (IOException e) {
+                log.error("블로그 이미지 저장 실패", e);
+                return ResponseEntity.internalServerError().build();
+            }
+        }
+        return ResponseEntity.ok(fileUrls);
+    }
+
+    /**
+     * GET /api/posts/uploads/{uuid}
+     * 블로그 이미지 조회 (inline — <img src> 태그에서 바로 표시)
+     */
+    @GetMapping("/uploads/{uuid}")
+    public ResponseEntity<byte[]> viewImage(@PathVariable String uuid) {
+        try {
+            Path filePath = Paths.get(UPLOAD_DIR, uuid);
+
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            byte[] fileBytes = Files.readAllBytes(filePath);
+
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) contentType = "application/octet-stream";
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + uuid + "\"")
+                    .body(fileBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
